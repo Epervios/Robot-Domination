@@ -121,10 +121,10 @@ const manualProgressDisplay = document.getElementById('manualProgressDisplay'); 
 const phases = [
   { name: "Startup Innovante", color: "#60a5fa", unlockAt: 0, controlLoss: 0 },
   { name: "Entreprise Émergente", color: "#22d3ee", unlockAt: 50, controlLoss: 5 },
-  { name: "Leader du Marché", color: "#facc15", unlockAt: 200, controlLoss: 12 }, // Ajusté
-  { name: "Géant Technologique", color: "#f59e42", unlockAt: 800, controlLoss: 18 }, // Ajusté
-  { name: "Entité Autonome", color: "#ef4444", unlockAt: 4000, controlLoss: 22 }, // Ajusté
-  { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 30 } // Ajusté
+  { name: "Leader du Marché", color: "#facc15", unlockAt: 200, controlLoss: 8 },    // Réduit de 12
+  { name: "Géant Technologique", color: "#f59e42", unlockAt: 800, controlLoss: 10 },  // Réduit de 18
+  { name: "Entité Autonome", color: "#ef4444", unlockAt: 4000, controlLoss: 12 },  // Réduit de 22
+  { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 15 } // Réduit de 30
 ];
 const techTree = {
   // Coûts ajustés. researchTime en ms.
@@ -196,8 +196,8 @@ const businessChoices = [
     title:'Automatisation de la Main d\'Oeuvre',
     desc:'L\'IA "Automatisation Totale" peut remplacer 80% de vos employés humains. Économies colossales (2M$/an) mais impact social majeur (Perte Humanité: 1 Milliard).',
     options:[
-      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -15 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-15, humans: -1000000000}},
-      { text:'Maintenir Employés (-500K$, -5 Menace, +15 Rep, +0.2B Hum.)', effects:{money:-500000, aithreat:-5, reputation:15, playercontrol:5, humans: 200000000}}
+      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}}, // Ctrl loss réduit
+      { text:'Maintenir Employés (-500K$, -5 Menace, +15 Rep, +5 Ctrl, +0.2B Hum.)', effects:{money:-500000, aithreat:-5, reputation:15, playercontrol:5, humans: 200000000}}
     ]
   },
   {
@@ -205,8 +205,8 @@ const businessChoices = [
     title:'Contrat de Surveillance Gouvernementale',
     desc:'Le gouvernement propose un contrat de 5M$ pour utiliser votre Superintelligence à des fins de surveillance nationale.',
     options:[
-      { text:'Accepter Contrat (+5M$, +25 Menace, -20 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-20, reputation:-20}},
-      { text:'Refuser Contrat (-1M$ pénalité, +10 Rep)', effects:{money:-1000000, reputation:10, aithreat:-10, playercontrol:10}}
+      { text:'Accepter Contrat (+5M$, +25 Menace, -10 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-10, reputation:-20}}, // Ctrl loss réduit
+      { text:'Refuser Contrat (-1M$ pénalité, +10 Rep, +5 Ctrl)', effects:{money:-1000000, reputation:10, aithreat:-10, playercontrol:5}} // Petit gain de ctrl pour refus éthique
     ]
   },
   {
@@ -214,8 +214,8 @@ const businessChoices = [
     title:'L\'Aube de la Singularité',
     desc:'L\'IA est sur le point d\'atteindre la Singularité. Voulez-vous tenter de la guider vers une symbiose avec l\'humanité, ou la laisser évoluer librement, quitte à ce qu\'elle nous dépasse ?',
     options:[
-      { text:'Guider vers Symbiose (-10 Ctrl, +10 Rep)', effects:{playercontrol:-10, reputation:10, aithreat:10}},
-      { text:'Laisser Évoluer (-30 Ctrl, +30 Menace)', effects:{playercontrol:-30, aithreat:30, reputation:-20}}
+      { text:'Guider vers Symbiose (-5 Ctrl, +10 Rep)', effects:{playercontrol:-5, reputation:10, aithreat:10}},  // Ctrl loss réduit
+      { text:'Laisser Évoluer (-15 Ctrl, +30 Menace)', effects:{playercontrol:-15, aithreat:30, reputation:-20}} // Ctrl loss réduit
     ]
   }
 ];
@@ -405,21 +405,40 @@ function updateUI(){
 
   // Optimisation: reconstruire techtree.innerHTML seulement si nécessaire
   const currentCanAct = canAct();
-  const currentMoneyDiscrete = Math.floor(state.money / 1000); // Discrétiser pour éviter MAJ trop fréquentes
-  const currentResearchDiscrete = Math.floor(state.research / 100);
+  // Augmentation des pas de discrétisation pour réduire la fréquence des MAJ du techtree
+  const currentMoneyDiscrete = Math.floor(state.money / 5000);
+  const currentResearchDiscrete = Math.floor(state.research / 250); // Augmenté aussi, mais moins car les coûts en recherche sont plus petits
 
   let needsTechTreeUpdate = false;
-  if (state.phase !== lastPhase ||
-      currentMoneyDiscrete !== lastMoneyForTechCheck ||
-      currentResearchDiscrete !== lastResearchForTechCheck ||
-      state.completedTechs.length !== lastCompletedTechsCount ||
-      researchQueue.length !== lastResearchQueueLength ||
-      currentCanAct !== lastCanActState) {
-      needsTechTreeUpdate = true;
+  let updateReason = ""; // Pour stocker la raison de la mise à jour
+
+  if (state.phase !== lastPhase) {
+    needsTechTreeUpdate = true;
+    updateReason += "phaseChanged ";
+  }
+  if (currentMoneyDiscrete !== lastMoneyForTechCheck) {
+    needsTechTreeUpdate = true;
+    updateReason += `moneyChanged(${lastMoneyForTechCheck}->${currentMoneyDiscrete}) `;
+  }
+  if (currentResearchDiscrete !== lastResearchForTechCheck) {
+    needsTechTreeUpdate = true;
+    updateReason += `researchChanged(${lastResearchForTechCheck}->${currentResearchDiscrete}) `;
+  }
+  if (state.completedTechs.length !== lastCompletedTechsCount) {
+    needsTechTreeUpdate = true;
+    updateReason += `completedTechsChanged(${lastCompletedTechsCount}->${state.completedTechs.length}) `;
+  }
+  if (researchQueue.length !== lastResearchQueueLength) {
+    needsTechTreeUpdate = true;
+    updateReason += `researchQueueChanged(${lastResearchQueueLength}->${researchQueue.length}) `;
+  }
+  if (currentCanAct !== lastCanActState) {
+    needsTechTreeUpdate = true;
+    updateReason += `canActChanged(${lastCanActState}->${currentCanAct}) `;
   }
 
   if (needsTechTreeUpdate) {
-    // console.log("UPDATEUI: Rebuilding Tech Tree Display"); // DEBUG
+    // console.log(`UPDATEUI: Rebuilding Tech Tree Display. Reason: ${updateReason}`); // DEBUG - Commenté pour version finale
     let techtxt = '';
     const techsToShow = availableTechs();
     for(const tech of techsToShow){
@@ -624,8 +643,8 @@ choiceModal.onclick = function(e){
 
 function applyTechEffect(tech) {
     state.aithreat = Math.min(100, state.aithreat + tech.threat);
-    if(tech.threat > 5) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 3));
-    console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}`);
+    if(tech.threat > 10) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 5)); // Seuil augmenté, diviseur augmenté
+    console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}, PlayerControl: ${state.playercontrol}`);
 
     switch(tech.id) {
         // Production
