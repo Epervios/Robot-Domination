@@ -221,6 +221,15 @@ let running = false, gameTimer = null, messageQueue = [];
 let currentChoice = null, seenChoices = [];
 let researchQueue = [];
 
+// Variables de suivi pour optimiser updateUI pour le techtree
+let lastPhase = -1;
+let lastMoneyForTechCheck = -1; // Utiliser une version discrétisée de l'argent
+let lastResearchForTechCheck = -1; // Utiliser une version discrétisée de la recherche
+let lastCompletedTechsCount = -1;
+let lastResearchQueueLength = -1;
+let lastCanActState = true;
+
+
 function resetGame(){
   state = {
     phase:0, robots:0, energy:5000, money:300000,
@@ -247,12 +256,23 @@ function resetGame(){
     currentResearchFocus: 1,
     manualProductionProgress: 0,
     lastAutoProdMessageTime: 0,
+    lastWorryMessageTime: 0, // Ajouté pour limiter spam messages anxiété
+    lastPanicMessageTime: 0, // Ajouté pour limiter spam messages panique
   };
   messageQueue = [
     "Bienvenue à RobotCorp! Objectif: Domination IA. Prix robot: 15000$. Coût prod: " + (state.productionCostPerRobot * state.productionCostModifier) +"$. Commencez par la R&D!"
   ];
   running = false; seenChoices=[]; currentChoice=null; researchQueue=[];
-  updateUI();
+
+  // Réinitialiser les variables de suivi pour updateUI
+  lastPhase = -1;
+  lastMoneyForTechCheck = -1;
+  lastResearchForTechCheck = -1;
+  lastCompletedTechsCount = -1;
+  lastResearchQueueLength = -1;
+  lastCanActState = true;
+
+  updateUI(); // Appel initial pour tout mettre en place
   stopGame();
   updateObjective();
 }
@@ -362,49 +382,73 @@ function updateUI(){
   updateObjective();
 
   stock.textContent = formatN(state.stock, 'stock');
-  let actualDemandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) ); // Demande minimale garantie
+  let actualDemandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
   demand.textContent = `${formatN(actualDemandPerSecond)}/sec`;
   specialorders.textContent = state.specialOrders.length
     ? state.specialOrders.map(o=>`${o.qte} (${formatN(o.restant)} restants)`).join(", ")
     : "Aucune";
 
-  let techtxt = '';
-  const techsToShow = availableTechs();
-  for(const tech of techsToShow){
-    let costString = "";
-    if (tech.cost.money) costString += formatN(tech.cost.money)+"$";
-    if (tech.cost.research) costString += (costString ? " + " : "") + "🧠 "+formatN(tech.cost.research);
+  // Optimisation: reconstruire techtree.innerHTML seulement si nécessaire
+  const currentCanAct = canAct();
+  const currentMoneyDiscrete = Math.floor(state.money / 1000); // Discrétiser pour éviter MAJ trop fréquentes
+  const currentResearchDiscrete = Math.floor(state.research / 100);
 
-    const dis = (tech.cost.money && state.money<tech.cost.money) ||
-                (tech.cost.research && state.research<tech.cost.research) ||
-                !canAct() ||
-                state.completedTechs.includes(tech.id) ||
-                researchQueue.some(q => q.id === tech.id);
-    techtxt+=`<button class="techbtn" ${dis?"disabled":""} data-tid="${tech.id}">
-      <b>${tech.name}</b> <span style="float:right;">+${tech.threat}⚠️</span><br>
-      <span style="font-size:0.9em;">${tech.desc}</span><br>
-      <span style="font-size:0.9em; color:#ddd;">Effet: ${tech.effect}</span><br>
-      <span style="font-size:0.93em;">Coût: ${costString}</span>
-    </button>`;
+  let needsTechTreeUpdate = false;
+  if (state.phase !== lastPhase ||
+      currentMoneyDiscrete !== lastMoneyForTechCheck ||
+      currentResearchDiscrete !== lastResearchForTechCheck ||
+      state.completedTechs.length !== lastCompletedTechsCount ||
+      researchQueue.length !== lastResearchQueueLength ||
+      currentCanAct !== lastCanActState) {
+      needsTechTreeUpdate = true;
   }
 
-  if(researchQueue.length > 0) {
-    let rq = researchQueue[0];
-    let perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus))*100);
-    // Cette partie est gérée par updateResearchProgressUIOnly pour éviter de reconstruire tout techtxt
-    // Mais on a besoin d'un placeholder si techtree est vidé puis reconstruit sans recherche en cours.
-     techtxt += `
-      <div id="researchProgressContainer">
-        <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours… (${perc}%)</div>
-        <div class="research-progressbar">
-          <div id="researchProgressBar" class="research-progress" style="width:${perc}%"></div>
-        </div>
-      </div>`;
-  } else {
-     techtxt += `<div id="researchProgressContainer" style="display:none;"><div id="researchProgressLabel" class="research-label"></div><div class="research-progressbar"><div id="researchProgressBar" class="research-progress"></div></div></div>`;
-  }
+  if (needsTechTreeUpdate) {
+    // console.log("UPDATEUI: Rebuilding Tech Tree Display"); // DEBUG
+    let techtxt = '';
+    const techsToShow = availableTechs();
+    for(const tech of techsToShow){
+      let costString = "";
+      if (tech.cost.money) costString += formatN(tech.cost.money)+"$";
+      if (tech.cost.research) costString += (costString ? " + " : "") + "🧠 "+formatN(tech.cost.research);
 
-  techtree.innerHTML = techtxt || '<span style="color:#aaa;">Aucune technologie disponible pour cette phase ou ressources insuffisantes.</span>';
+      const dis = (tech.cost.money && state.money<tech.cost.money) ||
+                  (tech.cost.research && state.research<tech.cost.research) ||
+                  !currentCanAct || // Utiliser la variable déjà calculée
+                  state.completedTechs.includes(tech.id) ||
+                  researchQueue.some(q => q.id === tech.id);
+      techtxt+=`<button class="techbtn" ${dis?"disabled":""} data-tid="${tech.id}">
+        <b>${tech.name}</b> <span style="float:right;">+${tech.threat}⚠️</span><br>
+        <span style="font-size:0.9em;">${tech.desc}</span><br>
+        <span style="font-size:0.9em; color:#ddd;">Effet: ${tech.effect}</span><br>
+        <span style="font-size:0.93em;">Coût: ${costString}</span>
+      </button>`;
+    }
+
+    // Placeholder pour la barre de progression de recherche. Elle sera remplie par updateResearchProgressUIOnly si besoin.
+    // Ou affichée correctement si une recherche est en cours au moment de cette reconstruction.
+    if (researchQueue.length > 0) {
+        let rq = researchQueue[0];
+        let perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus))*100);
+        techtxt += `
+          <div id="researchProgressContainer">
+            <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours… (${perc}%)</div>
+            <div class="research-progressbar">
+              <div id="researchProgressBar" class="research-progress" style="width:${perc}%"></div>
+            </div>
+          </div>`;
+    } else {
+        techtxt += `<div id="researchProgressContainer" style="display:none;"><div id="researchProgressLabel" class="research-label"></div><div class="research-progressbar"><div id="researchProgressBar" class="research-progress" style="width:0%"></div></div></div>`;
+    }
+    techtree.innerHTML = techtxt || '<span style="color:#aaa;">Aucune technologie disponible pour cette phase ou ressources insuffisantes.</span>';
+
+    lastPhase = state.phase;
+    lastMoneyForTechCheck = currentMoneyDiscrete;
+    lastResearchForTechCheck = currentResearchDiscrete;
+    lastCompletedTechsCount = state.completedTechs.length;
+    lastResearchQueueLength = researchQueue.length;
+    lastCanActState = currentCanAct;
+  }
 
   let completedTechNames = state.completedTechs.map(id => {
     for (const phaseKey in techTree) {
@@ -554,7 +598,7 @@ function applyTechEffect(tech) {
 
         // Recherche & Coûts
         case 'research_lab_1': state.researchSpeed *= 1.3; break;
-        // case 'production_rate_1': state.productionRateBonus += 0.3; break; // Doublon, déjà dans Production
+        // La ligne pour 'production_rate_1' ici était un doublon, elle est correctement gérée sous la section 'Production'
         case 'auto_research_1': state.autoResearch = true; addMessage("Recherche Automatisée N1 active!"); break;
         case 'energy_efficient_1': state.energyCostModifier *= 0.85; break;
         case 'marketing_campaign_1': state.demandModifier *= 1.2; state.reputation += 10; break;
@@ -606,12 +650,15 @@ function applyTechEffect(tech) {
 
 function gameLoop(){
   if(!running || state.gameEnded) {
+    // console.log("gameLoop SKIPPED", {running: running, gameEnded: state.gameEnded, time: Date.now()});
     return;
   }
   const now = Date.now();
   let dt = Math.min((now-state.lastUpdate)/1000, 0.5);
   dt = Math.max(0.001, dt);
   state.lastUpdate=now;
+
+  console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running}`);
 
   // === Recherche ===
   if(researchQueue.length > 0){
@@ -641,6 +688,7 @@ function gameLoop(){
   if(state.autoProduction && running){
     const currentProdRate = getCurrentProductionRate();
     let robotsProducedThisTick = 0;
+    console.log(`AUTO_PROD: Active. Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)}`);
 
     if (currentProdRate > 0) {
         const costMoneyPerRobot = getCurrentProductionCost();
@@ -648,6 +696,7 @@ function gameLoop(){
 
         const autoProdSpeedFactor = 8;
         const potentialRobotsToProduce = currentProdRate * autoProdSpeedFactor * dt;
+        console.log(`AUTO_PROD: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM=${formatN(costMoneyPerRobot)}, CostE=${formatN(costEnergyPerRobot)}`);
 
         let canAffordByMoney = Infinity;
         if (costMoneyPerRobot > 0) canAffordByMoney = state.money / costMoneyPerRobot;
@@ -661,13 +710,18 @@ function gameLoop(){
 
         robotsProducedThisTick = Math.min(potentialRobotsToProduce, canAffordByMoney, canAffordByEnergy);
         robotsProducedThisTick = Math.max(0, robotsProducedThisTick);
+        console.log(`AUTO_PROD: Decision. Produce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
+
 
         if (robotsProducedThisTick > 0 && isFinite(robotsProducedThisTick)) {
+            const prevStock = state.stock;
             state.stock += robotsProducedThisTick;
             state.money -= robotsProducedThisTick * costMoneyPerRobot;
             state.energy -= robotsProducedThisTick * costEnergyPerRobot;
             state.money = Math.max(0, state.money);
             state.energy = Math.max(0, state.energy);
+            console.log(`AUTO_PROD: SUCCESS. Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(state.money + (robotsProducedThisTick * costMoneyPerRobot))}->${formatN(state.money)}`);
+
 
             if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
                 // addMessage(`Production auto: ${robotsProducedThisTick.toFixed(3)} robots assemblés.`);
@@ -804,8 +858,10 @@ function gameLoop(){
 
 
   // === Ventes et Demande ===
+  console.log(`SALES: Pre-sales. Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}`);
   let demandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
   let actualDemandInDt = demandPerSecond * dt;
+  console.log(`SALES: Demand calc. demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)}`);
 
   let specialDemandProcessedThisDt = 0;
   for (const order of state.specialOrders) {
@@ -814,20 +870,26 @@ function gameLoop(){
       toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
 
       if (toProcess > 0) {
+          const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
           order.restant -= toProcess;
           state.money += toProcess * order.prix;
           state.robots += toProcess;
           state.stock -= toProcess;
           specialDemandProcessedThisDt += toProcess;
+          console.log(`SALES: Special Order. Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
       }
   }
   state.specialOrders = state.specialOrders.filter(o => o.restant > 0.01);
 
   let normalDemandToSatisfy = Math.min(state.stock, actualDemandInDt);
   if (normalDemandToSatisfy > 0) {
+      const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
       state.money += normalDemandToSatisfy * state.prix_vente;
       state.robots += normalDemandToSatisfy;
       state.stock -= normalDemandToSatisfy;
+      console.log(`SALES: Normal Demand. Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+  } else if (state.stock > 0 && actualDemandInDt <=0 && dt > 0) {
+      console.warn(`SALES: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
   }
 
   state.ventes_par_seconde = (specialDemandProcessedThisDt + normalDemandToSatisfy) / dt || 0;
@@ -836,7 +898,7 @@ function gameLoop(){
   checkBusinessChoices();
   // Appel final à updateUI si aucun autre appel n'a été fait ce tick (par ex recherche terminée, choix, etc.)
   // Pour l'instant, on se fie aux appels spécifiques. Mais si on veut une MAJ à chaque tick, décommenter.
-  // updateUI();
+  updateUI(); // Rétablir l'appel à updateUI à chaque tick de gameLoop. L'optimisation interne de updateUI devrait gérer la performance.
   // Alternative: appeler updateUI() uniquement si des changements significatifs ont eu lieu qui ne sont pas déjà couverts.
   // Pour le moment, la barre de recherche est le seul élément qui nécessite une MAJ à chaque tick si active.
   // Les autres éléments (argent, stock, etc.) sont mis à jour après les actions qui les modifient.
