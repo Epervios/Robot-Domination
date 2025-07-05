@@ -37,7 +37,7 @@
     <div id="phase" class="phase" style="background:#60a5fa;">Startup Innovante</div>
     <div id="objective" class="objective"></div>
     <div class="stats" style="margin-bottom:18px;">
-      <div class="stat">🤖 Robots<br><b id="robots">0</b></div>
+      <div class="stat" title="Nombre total de robots vendus. Utilisé pour atteindre les objectifs de phase.">🤖 Robots Vendus<br><b id="robots">0</b></div>
       <div class="stat">💰 Argent<br><b id="money">1,000</b></div>
       <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="Acheter Énergie (10K$ pour 100⚡)" style="padding: 1px 3px; font-size: 0.7em; vertical-align: middle;">+</button><br><b id="energy">100</b></div>
       <div class="stat">🧠 Recherche<br><b id="research">0</b></div>
@@ -57,6 +57,9 @@
       <div class="card">
         <b>Production</b><br><br>
         <button class="actionbtn" id="btnCreate">Créer Robot (<span id="robotCostDisplay">5000</span>$ + <span id="costEnergy">10</span> ⚡)</button>
+        <div id="manualProgressDisplayContainer" style="font-size:0.9em; color:#86efac; margin-top:4px; height:1.2em; text-align:center; display:none;">
+            <span id="manualProgressDisplay"></span>
+        </div>
         <div style="font-size:0.98em;color:#bbb; margin-top:6px;">
           Efficacité Prod.: <span id="efficiency">1.0</span> r/cycle<br>
           Coût Production Robot: <span id="prodCostInfo">5000</span>$<br>
@@ -113,6 +116,7 @@ const demand = document.getElementById('demand');
 const specialorders = document.getElementById('specialorders');
 const humansDisplay = document.getElementById('humansDisplay');
 const btnBuyEnergy = document.getElementById('btnBuyEnergy');
+const manualProgressDisplay = document.getElementById('manualProgressDisplay'); // Ajout de l'élément
 
 const phases = [
   { name: "Startup Innovante", color: "#60a5fa", unlockAt: 0, controlLoss: 0 },
@@ -382,6 +386,16 @@ function updateUI(){
   updateObjective();
 
   stock.textContent = formatN(state.stock, 'stock');
+
+  // Affichage progression manuelle
+  if (state.manualProductionProgress > 0.001 && state.manualProductionProgress < 1.0) {
+    manualProgressDisplay.textContent = `Prog. Robot: ${state.manualProductionProgress.toFixed(2)} / 1.0`;
+    document.getElementById('manualProgressDisplayContainer').style.display = 'block';
+  } else {
+    manualProgressDisplay.textContent = ''; // Cacher si pas de progression ou si >= 1
+    document.getElementById('manualProgressDisplayContainer').style.display = 'none';
+  }
+
   let actualDemandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
   demand.textContent = `${formatN(actualDemandPerSecond)}/sec`;
   specialorders.textContent = state.specialOrders.length
@@ -511,8 +525,11 @@ techtree.onclick = function(e) {
 btnCreate.onclick=function(){
   if(!canAct()) return;
 
-  state.manualProductionProgress += getCurrentProductionRate();
-  // addMessage(`Progression fabrication manuelle: ${state.manualProductionProgress.toFixed(2)}`);
+  const prodRate = getCurrentProductionRate();
+  state.manualProductionProgress += prodRate;
+  // updateUI() sera appelé à la fin de la fonction si un robot est fait, ou par le gameLoop prochain sinon.
+  // On peut forcer un updateUI ici si on veut voir la barre de prog manuelle s'updater à chaque clic.
+  // Pour l'instant, on laisse gameLoop s'en charger pour les clics qui ne complètent pas un robot.
 
   if (state.manualProductionProgress >= 1.0) {
     const robotsCompleted = Math.floor(state.manualProductionProgress);
@@ -528,9 +545,13 @@ btnCreate.onclick=function(){
       updateUI();
     } else {
       addMessage("Production manuelle en attente: ressources insuffisantes pour finaliser.");
+      updateUI(); // Mettre à jour l'UI pour s'assurer que manualProgressDisplay est correct
     }
   } else {
-     addMessage("Progression manuelle augmentée, pas encore de robot complet.");
+    if (prodRate > 0) { // N'afficher que si la progression a réellement augmenté
+         addMessage(`Progression robot manuel: +${prodRate.toFixed(2)}.`);
+    }
+    updateUI(); // Mettre à jour pour afficher la progression dans manualProgressDisplay
   }
 }
 btnPlayPause.onclick=function(){
@@ -658,7 +679,7 @@ function gameLoop(){
   dt = Math.max(0.001, dt);
   state.lastUpdate=now;
 
-  console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running}`);
+  // console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running}`);
 
   // === Recherche ===
   if(researchQueue.length > 0){
@@ -685,10 +706,11 @@ function gameLoop(){
   }
 
   // === Production Automatique ===
+  // === Production Automatique ===
   if(state.autoProduction && running){
     const currentProdRate = getCurrentProductionRate();
     let robotsProducedThisTick = 0;
-    console.log(`AUTO_PROD: Active. Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)}`);
+    // console.log(`AUTO_PROD: Active. Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)}`);
 
     if (currentProdRate > 0) {
         const costMoneyPerRobot = getCurrentProductionCost();
@@ -696,7 +718,7 @@ function gameLoop(){
 
         const autoProdSpeedFactor = 8;
         const potentialRobotsToProduce = currentProdRate * autoProdSpeedFactor * dt;
-        console.log(`AUTO_PROD: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM=${formatN(costMoneyPerRobot)}, CostE=${formatN(costEnergyPerRobot)}`);
+        // console.log(`AUTO_PROD: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM=${formatN(costMoneyPerRobot)}, CostE=${formatN(costEnergyPerRobot)}`);
 
         let canAffordByMoney = Infinity;
         if (costMoneyPerRobot > 0) canAffordByMoney = state.money / costMoneyPerRobot;
@@ -710,17 +732,17 @@ function gameLoop(){
 
         robotsProducedThisTick = Math.min(potentialRobotsToProduce, canAffordByMoney, canAffordByEnergy);
         robotsProducedThisTick = Math.max(0, robotsProducedThisTick);
-        console.log(`AUTO_PROD: Decision. Produce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
+        // console.log(`AUTO_PROD: Decision. Produce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
 
 
         if (robotsProducedThisTick > 0 && isFinite(robotsProducedThisTick)) {
-            const prevStock = state.stock;
+            // const prevStock = state.stock; // Log retiré
             state.stock += robotsProducedThisTick;
             state.money -= robotsProducedThisTick * costMoneyPerRobot;
             state.energy -= robotsProducedThisTick * costEnergyPerRobot;
             state.money = Math.max(0, state.money);
             state.energy = Math.max(0, state.energy);
-            console.log(`AUTO_PROD: SUCCESS. Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(state.money + (robotsProducedThisTick * costMoneyPerRobot))}->${formatN(state.money)}`);
+            // console.log(`AUTO_PROD: SUCCESS. Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(state.money + (robotsProducedThisTick * costMoneyPerRobot))}->${formatN(state.money)}`);
 
 
             if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
@@ -858,10 +880,10 @@ function gameLoop(){
 
 
   // === Ventes et Demande ===
-  console.log(`SALES: Pre-sales. Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}`);
+  // console.log(`SALES: Pre-sales. Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}`);
   let demandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
   let actualDemandInDt = demandPerSecond * dt;
-  console.log(`SALES: Demand calc. demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)}`);
+  // console.log(`SALES: Demand calc. demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)}`);
 
   let specialDemandProcessedThisDt = 0;
   for (const order of state.specialOrders) {
@@ -870,26 +892,26 @@ function gameLoop(){
       toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
 
       if (toProcess > 0) {
-          const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
+          // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
           order.restant -= toProcess;
           state.money += toProcess * order.prix;
           state.robots += toProcess;
           state.stock -= toProcess;
           specialDemandProcessedThisDt += toProcess;
-          console.log(`SALES: Special Order. Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+          // console.log(`SALES: Special Order. Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
       }
   }
   state.specialOrders = state.specialOrders.filter(o => o.restant > 0.01);
 
   let normalDemandToSatisfy = Math.min(state.stock, actualDemandInDt);
   if (normalDemandToSatisfy > 0) {
-      const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
+      // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
       state.money += normalDemandToSatisfy * state.prix_vente;
       state.robots += normalDemandToSatisfy;
       state.stock -= normalDemandToSatisfy;
-      console.log(`SALES: Normal Demand. Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+      // console.log(`SALES: Normal Demand. Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
   } else if (state.stock > 0 && actualDemandInDt <=0 && dt > 0) {
-      console.warn(`SALES: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
+      // console.warn(`SALES: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
   }
 
   state.ventes_par_seconde = (specialDemandProcessedThisDt + normalDemandToSatisfy) / dt || 0;
