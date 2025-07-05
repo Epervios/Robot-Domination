@@ -245,7 +245,7 @@ function resetGame(){
     efficiency:1,
     autoProduction:false, autoResearch:false,
     completedTechs:[], lastUpdate:Date.now(), gameEnded:false,
-    baseEnergyCostPerRobot: 20,
+    baseEnergyCostPerRobot: 5, // Modifié de 20 à 5
     energyCostModifier: 1,
     productionCostPerRobot: 6000,
     productionCostModifier: 1,
@@ -638,7 +638,7 @@ function applyTechEffect(tech) {
         case 'research_lab_1': state.researchSpeed *= 1.3; break;
         // La ligne pour 'production_rate_1' ici était un doublon, elle est correctement gérée sous la section 'Production'
         case 'auto_research_1': state.autoResearch = true; addMessage("Recherche Automatisée N1 active!"); break;
-        case 'energy_efficient_1': state.energyCostModifier *= 0.85; break;
+        case 'energy_efficient_1': state.energyCostModifier *= 0.65; break; // Effet augmenté
         case 'marketing_campaign_1': state.demandModifier *= 1.2; state.reputation += 10; break;
         case 'supply_chain_1': state.productionCostModifier *= 0.9; break;
         case 'data_analytics_1': state.satisfaction = Math.min(100, state.satisfaction + 5); break;
@@ -782,7 +782,7 @@ function gameLoop(){
   }
 
   // === Énergie ===
-  let energyRegenPerSec = Math.min(state.robots * 0.1 + 10, 1000);
+  let energyRegenPerSec = Math.min(state.robots * 0.1 + 50, 1500); // Base regen +50, Plafond regen 1500
   state.energy = Math.min(state.energy + energyRegenPerSec * dt, 250000);
   state.energy = Math.max(0, state.energy);
 
