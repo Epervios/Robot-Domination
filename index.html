@@ -224,6 +224,7 @@ let state = {};
 let running = false, gameTimer = null, messageQueue = [];
 let currentChoice = null, seenChoices = [];
 let researchQueue = [];
+let gameWasRunningBeforeModal = false; // Pour la pause pendant les modales
 
 // Variables de suivi pour optimiser updateUI pour le techtree
 let lastPhase = -1;
@@ -481,6 +482,11 @@ function updateMessages(){
 }
 
 function showChoiceModal(choice){
+  gameWasRunningBeforeModal = running;
+  if (running) {
+    stopGame();
+    // console.log("Game stopped for modal"); // DEBUG
+  }
   currentChoice=choice;
   choiceModal.innerHTML = `
     <div class="choice-modal">
@@ -601,14 +607,25 @@ choiceModal.onclick = function(e){
       addMessage("Nouvelle commande urgente (15 robots) acceptée !");
     }
     addMessage(`Décision: "${opt.text}". Conséquences appliquées.`);
+    console.log(`### CHOICE MADE: ID=${currentChoice.id}, OptionText="${opt.text}". EffectsApplied. NewState: Money=${formatN(state.money)}, Rep=${state.reputation}, AIThreat=${state.aithreat}, Stock=${formatN(state.stock, 'stock')}, PlayerControl=${state.playercontrol}, ProdRateBonus=${state.productionRateBonus}`);
     seenChoices.push(currentChoice.id);
-    hideChoiceModal(); updateUI();
+
+    const choiceIdJustProcessed = currentChoice.id; // Store id before hideChoiceModal nullifies currentChoice
+
+    hideChoiceModal();
+    updateUI(); // Mettre à jour l'UI après les effets du choix
+
+    if (gameWasRunningBeforeModal) {
+      startGame();
+      // console.log("Game restarted after modal for choice:", choiceIdJustProcessed); // DEBUG
+    }
   }
 }
 
 function applyTechEffect(tech) {
     state.aithreat = Math.min(100, state.aithreat + tech.threat);
     if(tech.threat > 5) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 3));
+    console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}`);
 
     switch(tech.id) {
         // Production
@@ -679,7 +696,7 @@ function gameLoop(){
   dt = Math.max(0.001, dt);
   state.lastUpdate=now;
 
-  // console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running}`);
+  console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running} phase=${state.phase} researchQ=${researchQueue.length} choice=${currentChoice ? currentChoice.id : 'null'}`);
 
   // === Recherche ===
   if(researchQueue.length > 0){
@@ -710,7 +727,7 @@ function gameLoop(){
   if(state.autoProduction && running){
     const currentProdRate = getCurrentProductionRate();
     let robotsProducedThisTick = 0;
-    // console.log(`AUTO_PROD: Active. Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)}`);
+    console.log(`AUTO_PROD Entry: Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)} Stock=${state.stock.toFixed(2)}`);
 
     if (currentProdRate > 0) {
         const costMoneyPerRobot = getCurrentProductionCost();
@@ -718,7 +735,7 @@ function gameLoop(){
 
         const autoProdSpeedFactor = 8;
         const potentialRobotsToProduce = currentProdRate * autoProdSpeedFactor * dt;
-        // console.log(`AUTO_PROD: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM=${formatN(costMoneyPerRobot)}, CostE=${formatN(costEnergyPerRobot)}`);
+        console.log(`AUTO_PROD Calc: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM_per_Robot=${formatN(costMoneyPerRobot)}, CostE_per_Robot=${formatN(costEnergyPerRobot)}`);
 
         let canAffordByMoney = Infinity;
         if (costMoneyPerRobot > 0) canAffordByMoney = state.money / costMoneyPerRobot;
@@ -732,31 +749,32 @@ function gameLoop(){
 
         robotsProducedThisTick = Math.min(potentialRobotsToProduce, canAffordByMoney, canAffordByEnergy);
         robotsProducedThisTick = Math.max(0, robotsProducedThisTick);
-        // console.log(`AUTO_PROD: Decision. Produce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
-
+        console.log(`AUTO_PROD Decision: ToProduce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
 
         if (robotsProducedThisTick > 0 && isFinite(robotsProducedThisTick)) {
-            // const prevStock = state.stock; // Log retiré
+            const prevStock = state.stock; // Pour log
+            const prevMoney = state.money; // Pour log
+            const prevEnergy = state.energy; // Pour log
             state.stock += robotsProducedThisTick;
             state.money -= robotsProducedThisTick * costMoneyPerRobot;
             state.energy -= robotsProducedThisTick * costEnergyPerRobot;
             state.money = Math.max(0, state.money);
             state.energy = Math.max(0, state.energy);
-            // console.log(`AUTO_PROD: SUCCESS. Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(state.money + (robotsProducedThisTick * costMoneyPerRobot))}->${formatN(state.money)}`);
+            console.log(`AUTO_PROD SUCCESS: Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Energy ${formatN(prevEnergy)}->${formatN(state.energy)}`);
 
-
-            if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
-                // addMessage(`Production auto: ${robotsProducedThisTick.toFixed(3)} robots assemblés.`);
-                state.lastAutoProdMessageTime = Date.now();
-            }
+            // Le message addMessage est déjà limité en fréquence, pas besoin de re-vérifier le temps ici pour lui
+            // addMessage(`Production auto: ${robotsProducedThisTick.toFixed(3)} robots assemblés.`);
+            state.lastAutoProdMessageTime = Date.now(); // Mettre à jour le temps du dernier message/action de prod auto
         } else if (potentialRobotsToProduce > 0 && robotsProducedThisTick <= 0) {
             if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
+                console.log("Production auto: Ressources (Argent/Énergie) insuffisantes."); // Log direct
                 addMessage("Production auto: Ressources (Argent/Énergie) insuffisantes.");
                 state.lastAutoProdMessageTime = Date.now();
             }
         }
     } else {
         if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
+            console.log("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité."); // Log direct
             addMessage("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité.");
             state.lastAutoProdMessageTime = Date.now();
         }
@@ -808,6 +826,7 @@ function gameLoop(){
       let newPhaseName = phases[state.phase].name;
       addMessage(`PROGRESSION MAJEURE : Vous entrez dans la phase "${newPhaseName}".`);
       state.playercontrol = Math.max(0, state.playercontrol - (phases[state.phase].controlLoss || 0) );
+      console.log(`### PHASE CHANGED to ${state.phase} (${newPhaseName}). Robots: ${formatN(state.robots)}, Money: ${formatN(state.money)}, Stock: ${formatN(state.stock, 'stock')}, PlayerControl: ${state.playercontrol}`);
 
       if (newPhaseName === "Entreprise Émergente") {
           addMessage("RobotCorp n'est plus une simple startup. Vos ambitions grandissent, tout comme votre influence.");
@@ -880,10 +899,10 @@ function gameLoop(){
 
 
   // === Ventes et Demande ===
-  // console.log(`SALES: Pre-sales. Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}`);
+  console.log(`SALES Entry: Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}, DemandMod=${state.demandModifier}, BaseDemand=${state.baseDemand}, Rep=${state.reputation}, Sat=${state.satisfaction}`);
   let demandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
   let actualDemandInDt = demandPerSecond * dt;
-  // console.log(`SALES: Demand calc. demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)}`);
+  console.log(`SALES Demand Calc: demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
 
   let specialDemandProcessedThisDt = 0;
   for (const order of state.specialOrders) {
@@ -892,26 +911,26 @@ function gameLoop(){
       toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
 
       if (toProcess > 0) {
-          // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
+          const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
           order.restant -= toProcess;
           state.money += toProcess * order.prix;
           state.robots += toProcess;
           state.stock -= toProcess;
           specialDemandProcessedThisDt += toProcess;
-          // console.log(`SALES: Special Order. Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+          console.log(`SALES Special Order: Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
       }
   }
   state.specialOrders = state.specialOrders.filter(o => o.restant > 0.01);
 
   let normalDemandToSatisfy = Math.min(state.stock, actualDemandInDt);
   if (normalDemandToSatisfy > 0) {
-      // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
+      const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
       state.money += normalDemandToSatisfy * state.prix_vente;
       state.robots += normalDemandToSatisfy;
       state.stock -= normalDemandToSatisfy;
-      // console.log(`SALES: Normal Demand. Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+      console.log(`SALES Normal Demand: Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
   } else if (state.stock > 0 && actualDemandInDt <=0 && dt > 0) {
-      // console.warn(`SALES: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
+      console.warn(`SALES WARN: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
   }
 
   state.ventes_par_seconde = (specialDemandProcessedThisDt + normalDemandToSatisfy) / dt || 0;
