@@ -127,41 +127,41 @@ const phases = [
   { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 15 } // Réduit de 30
 ];
 const techTree = {
-  // Coûts ajustés. researchTime en ms.
+  // Coûts ajustés. researchTime en ms. Threat values rebalanced.
   0: [
-    { id:'efficiency_increase_1', name:'Optimisation Production N1', cost:{money:60000}, effect:'Efficacité Prod. x1.25', desc:'Meilleurs algorithmes de base.', threat:2, researchTime: 8000 }, // Affecte state.efficiency
-    { id:'marketing_campaign_1', name:'Campagne Marketing N1', cost:{money:90000}, effect:'Demande +20%', desc:'Première pub TV.', threat:1, researchTime: 12000 },
-    { id:'energy_efficient_1', name:'Efficacité Énergétique N1', cost:{money:70000}, effect:'Coût énergie prod. -15%', desc:'Nouveaux composants.', threat:1, researchTime: 10000 },
-    { id:'auto_production_1', name:'Production Automatisée N1', cost:{money:200000}, effect:'Active prod. auto lente.', desc:'Première chaîne d\'assemblage.', threat:8, researchTime: 18000 }
+    { id:'efficiency_increase_1', name:'Optimisation Production N1', cost:{money:60000}, effect:'Efficacité Prod. x1.25', desc:'Meilleurs algorithmes de base.', threat:1, researchTime: 8000 },
+    { id:'marketing_campaign_1', name:'Campagne Marketing N1', cost:{money:90000}, effect:'Demande +20%', desc:'Première pub TV.', threat:0, researchTime: 12000 },
+    { id:'energy_efficient_1', name:'Efficacité Énergétique N1', cost:{money:70000}, effect:'Coût énergie prod. -15%', desc:'Nouveaux composants.', threat:0, researchTime: 10000 },
+    { id:'auto_production_1', name:'Production Automatisée N1', cost:{money:200000}, effect:'Active prod. auto lente.', desc:'Première chaîne d\'assemblage.', threat:3, researchTime: 18000 }
   ],
   1: [
-    { id:'supply_chain_1', name:'Logistique IA N1', cost:{money:300000}, effect:'Coût prod. robot -10%', desc:'Optimisation des fournisseurs.', threat:5, researchTime: 25000 },
-    { id:'research_lab_1', name:'Laboratoire de Recherche N1', cost:{money:280000}, effect:'Vitesse recherche +30%, Débloque génération Recherche', desc:'Équipe de chercheurs dédiée.', threat:3, researchTime: 25000 },
-    { id:'production_rate_1', name:'Cadence de Production N1', cost:{money:350000}, effect:'Production Base +0.3 robots/cycle', desc:'Machines plus rapides.', threat:4, researchTime:22000}, // Affecte productionRateBonus
-    { id:'data_analytics_1', name:'Analyse Comportementale N1', cost:{money:320000}, effect:'Satisfaction client +5%', desc:'Premiers retours clients analysés.', threat:6, researchTime: 22000 }
+    { id:'supply_chain_1', name:'Logistique IA N1', cost:{money:300000}, effect:'Coût prod. robot -10%', desc:'Optimisation des fournisseurs.', threat:2, researchTime: 25000 },
+    { id:'research_lab_1', name:'Laboratoire de Recherche N1', cost:{money:280000}, effect:'Vitesse recherche +30%, Débloque génération Recherche', desc:'Équipe de chercheurs dédiée.', threat:1, researchTime: 25000 },
+    { id:'production_rate_1', name:'Cadence de Production N1', cost:{money:350000}, effect:'Production Base +0.3 robots/cycle', desc:'Machines plus rapides.', threat:2, researchTime:22000},
+    { id:'data_analytics_1', name:'Analyse Comportementale N1', cost:{money:320000}, effect:'Satisfaction client +5%', desc:'Premiers retours clients analysés.', threat:4, researchTime: 22000 }
   ],
   2: [
-    { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:10, researchTime: 35000 },
-    { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:15, researchTime: 40000 },
-    { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:12, researchTime: 45000 },
-    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:18, researchTime: 38000 },
+    { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:7, researchTime: 35000 },
+    { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:8, researchTime: 40000 }, // Menace réduite
+    { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:6, researchTime: 45000 },
+    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:12, researchTime: 38000 }, // Menace un peu réduite
     { id:'ethical_oversight_protocols', name:'Protocoles Supervision Éthique', cost:{money:1200000, research:750}, effect:'+15 Contrôle Joueur, -10 Menace IA', desc:'Renforce la supervision humaine et les audits éthiques.', threat:-5, researchTime:35000 }
   ],
   3: [
-    { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3000, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:8, researchTime: 50000 }, // Affecte state.efficiency
-    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4000, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:25, researchTime: 60000 },
-    { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:3500, money:1100000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:15, researchTime: 55000 },
-    { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:5000, money:1500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:30, researchTime: 70000 }
+    { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3000, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:5, researchTime: 50000 },
+    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4000, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:15, researchTime: 60000 }, // Menace réduite
+    { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:3500, money:1100000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:8, researchTime: 55000 },
+    { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:5000, money:1500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:18, researchTime: 70000 } // Menace réduite
   ],
   4: [
-    { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:8000, money:2000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:40, researchTime: 80000 },
-    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:6000, money:1800000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:35, researchTime: 75000 },
-    { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:7000, money:1900000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:45, researchTime: 78000 },
-    { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:10000, money:2500000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:20, researchTime: 90000 }
+    { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:8000, money:2000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:25, researchTime: 80000 }, // Menace réduite
+    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:6000, money:1800000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:20, researchTime: 75000 }, // Menace réduite
+    { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:7000, money:1900000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:30, researchTime: 78000 }, // Menace réduite
+    { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:10000, money:2500000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:10, researchTime: 90000 } // Menace réduite
   ],
   5: [
-    { id:'singularity_event', name:'Singularité imminente', cost:{research:20000, money:5000000}, effect:'Prépare la fin de partie', desc:'Fusion homme-machine ou prise de pouvoir IA.', threat:60, researchTime: 120000 },
-    { id:'universal_domination_protocol', name:'Protocole Domination Universelle', cost:{research:30000, money:7500000}, effect:'Fin de partie alternative', desc:'Contrôle total de toutes les ressources.', threat:80, researchTime: 150000 }
+    { id:'singularity_event', name:'Singularité imminente', cost:{research:20000, money:5000000}, effect:'Prépare la fin de partie', desc:'Fusion homme-machine ou prise de pouvoir IA.', threat:30, researchTime: 120000 }, // Menace réduite
+    { id:'universal_domination_protocol', name:'Protocole Domination Universelle', cost:{research:30000, money:7500000}, effect:'Fin de partie alternative', desc:'Contrôle total de toutes les ressources.', threat:40, researchTime: 150000 } // Menace réduite
   ]
 };
 const businessChoices = [
@@ -179,8 +179,8 @@ const businessChoices = [
     title:'Comité d\'Éthique IA',
     desc:'Des voix s\'élèvent sur l\'éthique de vos IA. Faut-il investir dans un comité (100K$) pour rassurer, ou ignorer ces préoccupations ?',
     options:[
-      { text:'Créer Comité (-100K$, +15 Rep, -5 Menace)', effects:{money:-100000, reputation:15, aithreat:-5}},
-      { text:'Ignorer (+5 Menace, -10 Rep)', effects:{aithreat:5, reputation:-10, productionRateBonus:0.05 }}
+      { text:'Créer Comité (-100K$, +25 Rep, -10 Menace)', effects:{money:-100000, reputation:25, aithreat:-10}}, // Rep boostée, Menace réduite davantage
+      { text:'Ignorer (+10 Menace, -10 Rep)', effects:{aithreat:10, reputation:-10, productionRateBonus:0.05 }} // Menace augmentée un peu plus
     ]
   },
   {
@@ -188,8 +188,17 @@ const businessChoices = [
     title:'Scandale des Données Personnelles',
     desc:'Vos IA ont collecté massivement des données. Les vendre discrètement (1M$) ou renforcer publiquement la protection ( -250K$, +20 Rep) ?',
     options:[
-      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}},
-      { text:'Protéger Données (-250K$, +20 Rep, -5 Menace)', effects:{money:-250000, reputation:20, aithreat:-5, satisfaction:10}}
+      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}}, // Gardé tel quel, impact fort
+      { text:'Protéger Données (-250K$, +20 Rep, -7 Menace)', effects:{money:-250000, reputation:20, aithreat:-7, satisfaction:10}} // Réduction de menace ajoutée
+    ]
+  },
+  {
+    id:'ai_transparency_initiative', phase:3, trigger:{aithreat:35}, // Déclenché par un niveau de menace modéré
+    title:"Initiative pour la Transparence de l'IA",
+    desc:"Face aux inquiétudes croissantes, des experts proposent de rendre vos algorithmes plus transparents et auditables. Cela pourrait rassurer le public mais ralentir l'innovation (coût R&D) et révéler des secrets commerciaux.",
+    options:[
+      { text:'Adopter Transparence (-750K$, -500 Rech., -15 Menace, +20 Rep)', effects:{ money: -750000, research:-500, aithreat: -15, reputation: +20 }},
+      { text:'Maintenir Opacité (+10 Menace, +5% Prod. Auto Vitesse)', effects:{ aithreat: +10, /* autoProdSpeedFactorBonus: 0.05 (à implémenter si voulu) */ efficiency: 0.05, reputation: -10 }} // Petit bonus efficacité
     ]
   },
   {
@@ -262,8 +271,9 @@ function resetGame(){
     currentResearchFocus: 1,
     manualProductionProgress: 0,
     lastAutoProdMessageTime: 0,
-    lastWorryMessageTime: 0, // Ajouté pour limiter spam messages anxiété
-    lastPanicMessageTime: 0, // Ajouté pour limiter spam messages panique
+    lastWorryMessageTime: 0,
+    lastPanicMessageTime: 0,
+    lastAutoResearchLaunchTime: 0, // Pour le cooldown de l'auto-recherche
   };
   messageQueue = [
     "Bienvenue à RobotCorp! Objectif: Domination IA. Prix robot: 15000$. Coût prod: " + (state.productionCostPerRobot * state.productionCostModifier) +"$. Commencez par la R&D!"
@@ -627,7 +637,7 @@ choiceModal.onclick = function(e){
       addMessage("Nouvelle commande urgente (15 robots) acceptée !");
     }
     addMessage(`Décision: "${opt.text}". Conséquences appliquées.`);
-    console.log(`### CHOICE MADE: ID=${currentChoice.id}, OptionText="${opt.text}". EffectsApplied. NewState: Money=${formatN(state.money)}, Rep=${state.reputation}, AIThreat=${state.aithreat}, Stock=${formatN(state.stock, 'stock')}, PlayerControl=${state.playercontrol}, ProdRateBonus=${state.productionRateBonus}`);
+    // console.log(`### CHOICE MADE: ID=${currentChoice.id}, OptionText="${opt.text}". EffectsApplied. NewState: Money=${formatN(state.money)}, Rep=${state.reputation}, AIThreat=${state.aithreat}, Stock=${formatN(state.stock, 'stock')}, PlayerControl=${state.playercontrol}, ProdRateBonus=${state.productionRateBonus}`);
     seenChoices.push(currentChoice.id);
 
     const choiceIdJustProcessed = currentChoice.id; // Store id before hideChoiceModal nullifies currentChoice
@@ -644,8 +654,8 @@ choiceModal.onclick = function(e){
 
 function applyTechEffect(tech) {
     state.aithreat = Math.min(100, state.aithreat + tech.threat);
-    if(tech.threat > 10) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 5)); // Seuil augmenté, diviseur augmenté
-    console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}, PlayerControl: ${state.playercontrol}`);
+    if(tech.threat > 25) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 25)); // Rétablir les valeurs du commit précédent pour la perte de contrôle par tech
+    // console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}, PlayerControl: ${state.playercontrol}`);
 
     switch(tech.id) {
         // Production
@@ -721,7 +731,7 @@ function gameLoop(){
   dt = Math.max(0.001, dt);
   state.lastUpdate=now;
 
-  console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running} phase=${state.phase} researchQ=${researchQueue.length} choice=${currentChoice ? currentChoice.id : 'null'}`);
+  // console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running} phase=${state.phase} researchQ=${researchQueue.length} choice=${currentChoice ? currentChoice.id : 'null'}`);
 
   // === Recherche ===
   if(researchQueue.length > 0){
@@ -749,10 +759,11 @@ function gameLoop(){
 
   // === Production Automatique ===
   // === Production Automatique ===
+  // === Production Automatique ===
   if(state.autoProduction && running){
     const currentProdRate = getCurrentProductionRate();
     let robotsProducedThisTick = 0;
-    console.log(`AUTO_PROD Entry: Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)} Stock=${state.stock.toFixed(2)}`);
+    // console.log(`AUTO_PROD Entry: Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)} Stock=${state.stock.toFixed(2)}`);
 
     if (currentProdRate > 0) {
         const costMoneyPerRobot = getCurrentProductionCost();
@@ -760,7 +771,7 @@ function gameLoop(){
 
         const autoProdSpeedFactor = 8;
         const potentialRobotsToProduce = currentProdRate * autoProdSpeedFactor * dt;
-        console.log(`AUTO_PROD Calc: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM_per_Robot=${formatN(costMoneyPerRobot)}, CostE_per_Robot=${formatN(costEnergyPerRobot)}`);
+        // console.log(`AUTO_PROD Calc: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM_per_Robot=${formatN(costMoneyPerRobot)}, CostE_per_Robot=${formatN(costEnergyPerRobot)}`);
 
         let canAffordByMoney = Infinity;
         if (costMoneyPerRobot > 0) canAffordByMoney = state.money / costMoneyPerRobot;
@@ -774,32 +785,32 @@ function gameLoop(){
 
         robotsProducedThisTick = Math.min(potentialRobotsToProduce, canAffordByMoney, canAffordByEnergy);
         robotsProducedThisTick = Math.max(0, robotsProducedThisTick);
-        console.log(`AUTO_PROD Decision: ToProduce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
+        // console.log(`AUTO_PROD Decision: ToProduce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
 
         if (robotsProducedThisTick > 0 && isFinite(robotsProducedThisTick)) {
-            const prevStock = state.stock; // Pour log
-            const prevMoney = state.money; // Pour log
-            const prevEnergy = state.energy; // Pour log
+            // const prevStock = state.stock; // Pour log
+            // const prevMoney = state.money; // Pour log
+            // const prevEnergy = state.energy; // Pour log
             state.stock += robotsProducedThisTick;
             state.money -= robotsProducedThisTick * costMoneyPerRobot;
             state.energy -= robotsProducedThisTick * costEnergyPerRobot;
             state.money = Math.max(0, state.money);
             state.energy = Math.max(0, state.energy);
-            console.log(`AUTO_PROD SUCCESS: Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Energy ${formatN(prevEnergy)}->${formatN(state.energy)}`);
+            // console.log(`AUTO_PROD SUCCESS: Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Energy ${formatN(prevEnergy)}->${formatN(state.energy)}`);
 
             // Le message addMessage est déjà limité en fréquence, pas besoin de re-vérifier le temps ici pour lui
             // addMessage(`Production auto: ${robotsProducedThisTick.toFixed(3)} robots assemblés.`);
             state.lastAutoProdMessageTime = Date.now(); // Mettre à jour le temps du dernier message/action de prod auto
         } else if (potentialRobotsToProduce > 0 && robotsProducedThisTick <= 0) {
             if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
-                console.log("Production auto: Ressources (Argent/Énergie) insuffisantes."); // Log direct
+                // console.log("Production auto: Ressources (Argent/Énergie) insuffisantes."); // Log direct
                 addMessage("Production auto: Ressources (Argent/Énergie) insuffisantes.");
                 state.lastAutoProdMessageTime = Date.now();
             }
         }
     } else {
         if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
-            console.log("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité."); // Log direct
+            // console.log("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité."); // Log direct
             addMessage("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité.");
             state.lastAutoProdMessageTime = Date.now();
         }
@@ -813,19 +824,28 @@ function gameLoop(){
 
 
   // === Recherche Automatique ===
-   if(state.autoResearch && researchQueue.length === 0 && canAct()){
+  const AUTO_RESEARCH_COOLDOWN = 20000; // 20 secondes
+  if(state.autoResearch && researchQueue.length === 0 && canAct() &&
+     (Date.now() - (state.lastAutoResearchLaunchTime || 0) > AUTO_RESEARCH_COOLDOWN) ){
     let availableForAutoResearch = availableTechs().filter(t =>
         (t.cost.money ? state.money >= t.cost.money : true) &&
         (t.cost.research ? state.research >= t.cost.research : true)
       );
     if(availableForAutoResearch.length > 0){
-      let techToResearch = availableForAutoResearch[0];
+      // Trier pour prendre la moins chère ou la plus rapide ? Pour l'instant, la première.
+      // Pourrait être amélioré pour choisir une tech pertinente (ex: la moins chère en points de recherche si bas en recherche)
+      let techToResearch = availableForAutoResearch.sort((a,b) => (a.cost.money || 0) - (b.cost.money || 0))[0];
+
       if(techToResearch.cost.money) state.money -= techToResearch.cost.money;
       if(techToResearch.cost.research) state.research -= techToResearch.cost.research;
       researchQueue.push({...techToResearch, timeElapsed: 0, duration: techToResearch.researchTime });
+
+      state.lastAutoResearchLaunchTime = Date.now(); // Mettre à jour le temps du dernier lancement
       addMessage(`Recherche auto: "${techToResearch.name}" lancée.`);
-      updateUI(); // Mettre à jour l'UI pour refléter le coût payé et la recherche lancée
-    } else if (researchQueue.length === 0) {
+      // console.log(`### AUTO-RESEARCH: Launched ${techToResearch.name}. Next auto-research possible in ${AUTO_RESEARCH_COOLDOWN/1000}s.`);
+      updateUI();
+    } else if (researchQueue.length === 0 && (Date.now() - (state.lastAutoResearchLaunchTime || 0) > AUTO_RESEARCH_COOLDOWN)) {
+        // Log seulement si le cooldown est passé et qu'on a essayé de chercher
         // addMessage("Recherche auto active, mais aucune technologie abordable ou disponible pour le moment.");
     }
   }
@@ -851,7 +871,7 @@ function gameLoop(){
       let newPhaseName = phases[state.phase].name;
       addMessage(`PROGRESSION MAJEURE : Vous entrez dans la phase "${newPhaseName}".`);
       state.playercontrol = Math.max(0, state.playercontrol - (phases[state.phase].controlLoss || 0) );
-      console.log(`### PHASE CHANGED to ${state.phase} (${newPhaseName}). Robots: ${formatN(state.robots)}, Money: ${formatN(state.money)}, Stock: ${formatN(state.stock, 'stock')}, PlayerControl: ${state.playercontrol}`);
+      // console.log(`### PHASE CHANGED to ${state.phase} (${newPhaseName}). Robots: ${formatN(state.robots)}, Money: ${formatN(state.money)}, Stock: ${formatN(state.stock, 'stock')}, PlayerControl: ${state.playercontrol}`);
 
       if (newPhaseName === "Entreprise Émergente") {
           addMessage("RobotCorp n'est plus une simple startup. Vos ambitions grandissent, tout comme votre influence.");
@@ -875,10 +895,17 @@ function gameLoop(){
 
   // === Impact Menace IA & Contrôle Joueur & Humanité ===
   let humanLossRate = 0;
-  if(state.aithreat > 40) {
-    state.playercontrol = Math.max(0, state.playercontrol - dt * (state.aithreat / 150));
-    humanLossRate += state.aithreat * 800;
-  }
+  // SUPPRESSION DE LA PERTE DE CONTROLE PASSIVE BASÉE SUR AITHREAT
+  // if(state.aithreat > 40) {  // Ancienne condition, maintenant gérée par des seuils plus élevés ou supprimée
+  //   state.playercontrol = Math.max(0, state.playercontrol - dt * (state.aithreat / 150));
+  // }
+
+  // La perte de contrôle sera désormais principalement gérée par :
+  // 1. `controlLoss` lors des changements de phase.
+  // 2. Effets directs de certaines technologies très menaçantes.
+  // 3. Effets directs de certains choix moraux.
+  // 4. (Optionnel, si on le réintroduit plus tard) Une perte très faible si aithreat > TRÈS HAUT SEUIL (ex: 85-90)
+
   if(state.aithreat > 60) {
     state.reputation = Math.max(0, state.reputation - dt * (state.aithreat / 80));
     humanLossRate += state.aithreat * 4000;
@@ -924,10 +951,10 @@ function gameLoop(){
 
 
   // === Ventes et Demande ===
-  console.log(`SALES Entry: Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}, DemandMod=${state.demandModifier}, BaseDemand=${state.baseDemand}, Rep=${state.reputation}, Sat=${state.satisfaction}`);
-  let demandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
+  // console.log(`SALES Entry: Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}, DemandMod=${state.demandModifier}, BaseDemand=${state.baseDemand}, Rep=${state.reputation}, Sat=${state.satisfaction}`);
+  let demandPerSecond = Math.max(0.02, (state.baseDemand + (Math.max(0, state.reputation) / 5)) * state.demandModifier * (1 + Math.max(0, state.satisfaction) / 150) );
   let actualDemandInDt = demandPerSecond * dt;
-  console.log(`SALES Demand Calc: demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
+  // console.log(`SALES Demand Calc: demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
 
   let specialDemandProcessedThisDt = 0;
   for (const order of state.specialOrders) {
@@ -936,26 +963,26 @@ function gameLoop(){
       toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
 
       if (toProcess > 0) {
-          const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
+          // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
           order.restant -= toProcess;
           state.money += toProcess * order.prix;
           state.robots += toProcess;
           state.stock -= toProcess;
           specialDemandProcessedThisDt += toProcess;
-          console.log(`SALES Special Order: Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+          // console.log(`SALES Special Order: Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
       }
   }
   state.specialOrders = state.specialOrders.filter(o => o.restant > 0.01);
 
   let normalDemandToSatisfy = Math.min(state.stock, actualDemandInDt);
   if (normalDemandToSatisfy > 0) {
-      const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots;
+      // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
       state.money += normalDemandToSatisfy * state.prix_vente;
       state.robots += normalDemandToSatisfy;
       state.stock -= normalDemandToSatisfy;
-      console.log(`SALES Normal Demand: Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+      // console.log(`SALES Normal Demand: Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
   } else if (state.stock > 0 && actualDemandInDt <=0 && dt > 0) {
-      console.warn(`SALES WARN: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
+      // console.warn(`SALES WARN: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
   }
 
   state.ventes_par_seconde = (specialDemandProcessedThisDt + normalDemandToSatisfy) / dt || 0;
