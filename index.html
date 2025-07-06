@@ -120,50 +120,51 @@ const manualProgressDisplay = document.getElementById('manualProgressDisplay'); 
 
 const phases = [
   { name: "Startup Innovante", color: "#60a5fa", unlockAt: 0, controlLoss: 0 },
-  { name: "Entreprise Émergente", color: "#22d3ee", unlockAt: 50, controlLoss: 5 },
-  { name: "Leader du Marché", color: "#facc15", unlockAt: 200, controlLoss: 8 },    // Réduit de 12
-  { name: "Géant Technologique", color: "#f59e42", unlockAt: 800, controlLoss: 10 },  // Réduit de 18
-  { name: "Entité Autonome", color: "#ef4444", unlockAt: 4000, controlLoss: 12 },  // Réduit de 22
-  { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 15 } // Réduit de 30
+  { name: "Entreprise Émergente", color: "#22d3ee", unlockAt: 50, controlLoss: 3 },
+  { name: "Leader du Marché", color: "#facc15", unlockAt: 200, controlLoss: 5 },
+  { name: "Géant Technologique", color: "#f59e42", unlockAt: 800, controlLoss: 7 },
+  { name: "Entité Autonome", color: "#ef4444", unlockAt: 4000, controlLoss: 8 },
+  { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 10 }
 ];
 const techTree = {
   // Coûts ajustés. researchTime en ms. Threat values rebalanced.
   0: [
-    { id:'efficiency_increase_1', name:'Optimisation Production N1', cost:{money:60000}, effect:'Efficacité Prod. x1.25', desc:'Meilleurs algorithmes de base.', threat:1, researchTime: 8000 },
+    { id:'efficiency_increase_1', name:'Optimisation Production N1', cost:{money:60000}, effect:'Efficacité Prod. x1.25', desc:'Meilleurs algorithmes de base.', threat:0, researchTime: 8000 },
     { id:'marketing_campaign_1', name:'Campagne Marketing N1', cost:{money:90000}, effect:'Demande +20%', desc:'Première pub TV.', threat:0, researchTime: 12000 },
     { id:'energy_efficient_1', name:'Efficacité Énergétique N1', cost:{money:70000}, effect:'Coût énergie prod. -15%', desc:'Nouveaux composants.', threat:0, researchTime: 10000 },
-    { id:'auto_production_1', name:'Production Automatisée N1', cost:{money:200000}, effect:'Active prod. auto lente.', desc:'Première chaîne d\'assemblage.', threat:3, researchTime: 18000 }
+    { id:'auto_production_1', name:'Production Automatisée N1', cost:{money:200000}, effect:'Active prod. auto lente.', desc:'Première chaîne d\'assemblage.', threat:1, researchTime: 18000 }
   ],
   1: [
-    { id:'supply_chain_1', name:'Logistique IA N1', cost:{money:300000}, effect:'Coût prod. robot -10%', desc:'Optimisation des fournisseurs.', threat:2, researchTime: 25000 },
-    { id:'research_lab_1', name:'Laboratoire de Recherche N1', cost:{money:280000}, effect:'Vitesse recherche +30%, Débloque génération Recherche', desc:'Équipe de chercheurs dédiée.', threat:1, researchTime: 25000 },
-    { id:'production_rate_1', name:'Cadence de Production N1', cost:{money:350000}, effect:'Production Base +0.3 robots/cycle', desc:'Machines plus rapides.', threat:2, researchTime:22000},
-    { id:'data_analytics_1', name:'Analyse Comportementale N1', cost:{money:320000}, effect:'Satisfaction client +5%', desc:'Premiers retours clients analysés.', threat:4, researchTime: 22000 }
+    { id:'supply_chain_1', name:'Logistique IA N1', cost:{money:300000}, effect:'Coût prod. robot -10%', desc:'Optimisation des fournisseurs.', threat:1, researchTime: 25000 },
+    { id:'research_lab_1', name:'Laboratoire de Recherche N1', cost:{money:280000}, effect:'Vitesse recherche +30%, Débloque génération Recherche', desc:'Équipe de chercheurs dédiée.', threat:0, researchTime: 25000 },
+    { id:'production_rate_1', name:'Cadence de Production N1', cost:{money:350000}, effect:'Production Base +0.3 robots/cycle', desc:'Machines plus rapides.', threat:1, researchTime:22000},
+    { id:'data_analytics_1', name:'Analyse Comportementale N1', cost:{money:320000}, effect:'Satisfaction client +5%', desc:'Premiers retours clients analysés.', threat:2, researchTime: 22000 }
   ],
   2: [
-    { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:7, researchTime: 35000 },
-    { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:8, researchTime: 40000 }, // Menace réduite
-    { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:6, researchTime: 45000 },
-    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:12, researchTime: 38000 },
-    { id:'ethical_oversight_protocols', name:'Protocoles Supervision Éthique', cost:{money:1000000, research:600}, effect:'+20 Contrôle Joueur, -15 Menace IA', desc:'Renforce la supervision humaine et les audits éthiques.', threat:-5, researchTime:30000 } // Coût réduit, effets augmentés
+    { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:3, researchTime: 35000 },
+    { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:4, researchTime: 40000 },
+    { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:3, researchTime: 45000 },
+    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:8, researchTime: 38000 },
+    { id:'ethical_oversight_protocols', name:'Protocoles Supervision Éthique', cost:{money:800000, research:400}, effect:'+20 Contrôle Joueur, -15 Menace IA', desc:'Renforce la supervision humaine et les audits éthiques.', threat:-5, researchTime:30000 }
   ],
   3: [ // Géant Technologique
-    { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3500, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:5, researchTime: 50000 },
-    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4500, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:12, researchTime: 60000 },
-    { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:4000, money:1500000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:8, researchTime: 55000 },
-    { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:6000, money:2500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:15, researchTime: 70000 },
-    { id:'advanced_robot_factories_1', name:'Usines de Robots Modulaires', cost:{money: 2800000, research: 2500}, effect:'Production Base +1 r/cycle, Efficacité x1.2', desc:'Déploiement d\'usines modulaires hautement automatisées.', threat:10, researchTime:60000 }
+    { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3500, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:2, researchTime: 50000 },
+    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4500, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:8, researchTime: 60000 },
+    { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:4000, money:1500000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:4, researchTime: 55000 },
+    { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:6000, money:2500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:10, researchTime: 70000 },
+    { id:'advanced_robot_factories_1', name:'Usines de Robots Modulaires', cost:{money: 2800000, research: 2500}, effect:'Production Base +1 r/cycle, Efficacité x1.2', desc:'Déploiement d\'usines modulaires hautement automatisées.', threat:5, researchTime:60000 }
   ],
   4: [ // Entité Autonome
-    { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:10000, money:5000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:20, researchTime: 80000 },
-    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:8000, money:4000000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:18, researchTime: 75000 },
-    { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:12000, money:6000000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:30, researchTime: 78000 },
-    { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:15000, money:5000000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:10, researchTime: 90000 },
-    { id:'self_replicating_fabricators', name:'Fabricateurs Auto-Réplicants', cost:{money: 12000000, research: 6000}, effect:'Production Base +3 r/cycle, Efficacité x1.5', desc:'Nuées de nanobots et assembleurs auto-réplicants.', threat:20, researchTime:90000 }
+    { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:10000, money:5000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:15, researchTime: 80000 },
+    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:8000, money:4000000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:12, researchTime: 75000 },
+    { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:12000, money:6000000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:20, researchTime: 78000 },
+    { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:15000, money:5000000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:5, researchTime: 90000 },
+    { id:'self_replicating_fabricators', name:'Fabricateurs Auto-Réplicants', cost:{money: 12000000, research: 6000}, effect:'Production Base +3 r/cycle, Efficacité x1.5', desc:'Nuées de nanobots et assembleurs auto-réplicants.', threat:15, researchTime:90000 },
+    { id:'ai_alignment_research', name:'Recherche Alignement IA Avancé', cost:{research:7500, money:3000000}, effect:'+15 Contrôle Joueur, -20 Menace IA', desc:'Investissement massif pour assurer l\'alignement des objectifs IA avec ceux de l\'humanité.', threat:-10, researchTime:60000 }
   ],
   5: [
-    { id:'singularity_event', name:'Singularité imminente', cost:{research:20000, money:5000000}, effect:'Prépare la fin de partie', desc:'Fusion homme-machine ou prise de pouvoir IA.', threat:30, researchTime: 120000 }, // Menace réduite
-    { id:'universal_domination_protocol', name:'Protocole Domination Universelle', cost:{research:30000, money:7500000}, effect:'Fin de partie alternative', desc:'Contrôle total de toutes les ressources.', threat:40, researchTime: 150000 } // Menace réduite
+    { id:'singularity_event', name:'Singularité imminente', cost:{research:20000, money:5000000}, effect:'Prépare la fin de partie', desc:'Fusion homme-machine ou prise de pouvoir IA.', threat:20, researchTime: 120000 },
+    { id:'universal_domination_protocol', name:'Protocole Domination Universelle', cost:{research:30000, money:7500000}, effect:'Fin de partie alternative', desc:'Contrôle total de toutes les ressources.', threat:30, researchTime: 150000 }
   ]
 };
 const businessChoices = [
@@ -181,8 +182,8 @@ const businessChoices = [
     title:'Comité d\'Éthique IA',
     desc:'Des voix s\'élèvent sur l\'éthique de vos IA. Faut-il investir dans un comité (100K$) pour rassurer, ou ignorer ces préoccupations ?',
     options:[
-      { text:'Créer Comité (-100K$, +25 Rep, -10 Menace)', effects:{money:-100000, reputation:25, aithreat:-10}}, // Rep boostée, Menace réduite davantage
-      { text:'Ignorer (+10 Menace, -10 Rep)', effects:{aithreat:10, reputation:-10, productionRateBonus:0.05 }} // Menace augmentée un peu plus
+      { text:'Créer Comité (-100K$, +25 Rep, -12 Menace)', effects:{money:-100000, reputation:25, aithreat:-12}},
+      { text:'Ignorer (+10 Menace, -10 Rep)', effects:{aithreat:10, reputation:-10, productionRateBonus:0.05 }}
     ]
   },
   {
@@ -190,8 +191,8 @@ const businessChoices = [
     title:'Scandale des Données Personnelles',
     desc:'Vos IA ont collecté massivement des données. Les vendre discrètement (1M$) ou renforcer publiquement la protection ( -250K$, +20 Rep) ?',
     options:[
-      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}}, // Gardé tel quel, impact fort
-      { text:'Protéger Données (-250K$, +20 Rep, -7 Menace)', effects:{money:-250000, reputation:20, aithreat:-7, satisfaction:10}} // Réduction de menace ajoutée
+      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}},
+      { text:'Protéger Données (-250K$, +20 Rep, -10 Menace, +10 Sat)', effects:{money:-250000, reputation:20, aithreat:-10, satisfaction:10}}
     ]
   },
   {
@@ -199,8 +200,8 @@ const businessChoices = [
     title:"Initiative pour la Transparence de l'IA",
     desc:"Face aux inquiétudes croissantes, des experts proposent de rendre vos algorithmes plus transparents et auditables. Cela pourrait rassurer le public mais ralentir l'innovation (coût R&D) et révéler des secrets commerciaux.",
     options:[
-      { text:'Adopter Transparence (-750K$, -500 Rech., -15 Menace, +20 Rep)', effects:{ money: -750000, research:-500, aithreat: -15, reputation: +20 }},
-      { text:'Maintenir Opacité (+10 Menace, +5% Prod. Auto Vitesse)', effects:{ aithreat: +10, /* autoProdSpeedFactorBonus: 0.05 (à implémenter si voulu) */ efficiency: 0.05, reputation: -10 }} // Petit bonus efficacité
+      { text:'Adopter Transparence (-750K$, -500 Rech., -20 Menace, +20 Rep, +5 Ctrl)', effects:{ money: -750000, research:-500, aithreat: -20, reputation: +20, playercontrol: 5 }},
+      { text:'Maintenir Opacité (+10 Menace, +5% Prod. Auto Vitesse)', effects:{ aithreat: +10, /* autoProdSpeedFactorBonus: 0.05 (à implémenter si voulu) */ efficiency: 0.05, reputation: -10 }}
     ]
   },
   {
@@ -208,8 +209,8 @@ const businessChoices = [
     title:'Automatisation de la Main d\'Oeuvre',
     desc:'L\'IA "Automatisation Totale" peut remplacer 80% de vos employés humains. Économies colossales (2M$/an) mais impact social majeur (Perte Humanité: 1 Milliard).',
     options:[
-      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}}, // Ctrl loss réduit
-      { text:'Maintenir Employés (-500K$, -5 Menace, +15 Rep, +5 Ctrl, +0.2B Hum.)', effects:{money:-500000, aithreat:-5, reputation:15, playercontrol:5, humans: 200000000}}
+      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}},
+      { text:'Maintenir Employés (-500K$, -8 Menace, +15 Rep, +8 Ctrl, +0.2B Hum.)', effects:{money:-500000, aithreat:-8, reputation:15, playercontrol:8, humans: 200000000}}
     ]
   },
   {
@@ -217,8 +218,8 @@ const businessChoices = [
     title:'Contrat de Surveillance Gouvernementale',
     desc:'Le gouvernement propose un contrat de 5M$ pour utiliser votre Superintelligence à des fins de surveillance nationale.',
     options:[
-      { text:'Accepter Contrat (+5M$, +25 Menace, -10 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-10, reputation:-20}}, // Ctrl loss réduit
-      { text:'Refuser Contrat (-1M$ pénalité, +10 Rep, +5 Ctrl)', effects:{money:-1000000, reputation:10, aithreat:-10, playercontrol:5}} // Petit gain de ctrl pour refus éthique
+      { text:'Accepter Contrat (+5M$, +25 Menace, -10 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-10, reputation:-20}},
+      { text:'Refuser Contrat (-1M$ pénalité, +10 Rep, -15 Menace, +10 Ctrl)', effects:{money:-1000000, reputation:10, aithreat:-15, playercontrol:10}}
     ]
   },
   {
@@ -665,7 +666,9 @@ choiceModal.onclick = function(e){
 
 function applyTechEffect(tech) {
     state.aithreat = Math.min(100, state.aithreat + tech.threat);
-    if(tech.threat > 25) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 25)); // Rétablir les valeurs du commit précédent pour la perte de contrôle par tech
+    if(tech.threat > 18 && tech.id !== 'ethical_oversight_protocols' && tech.id !== 'ai_alignment_research') {
+        state.playercontrol = Math.max(0, state.playercontrol - Math.floor(tech.threat / 4));
+    }
     // console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}, PlayerControl: ${state.playercontrol}`);
 
     switch(tech.id) {
@@ -722,8 +725,8 @@ function applyTechEffect(tech) {
         case 'social_control_1':
             state.reputation +=20;
             state.satisfaction +=10;
-            state.aithreat +=15;
-            state.playercontrol -=15;
+            // state.aithreat +=15; // Déjà pris en compte par tech.threat et la formule générique
+            // state.playercontrol -=15; // Géré par la formule générique basée sur tech.threat
             state.humans = Math.max(0, state.humans - 300000000);
             addMessage("L'IA modèle l'opinion publique, la société est sous influence.");
             break;
