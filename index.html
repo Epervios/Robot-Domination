@@ -730,6 +730,11 @@ function applyTechEffect(tech) {
             state.humans = Math.max(0, state.humans - 300000000);
             addMessage("L'IA modèle l'opinion publique, la société est sous influence.");
             break;
+        case 'ai_alignment_research':
+            state.playercontrol = Math.min(100, state.playercontrol + 15);
+            state.aithreat = Math.max(0, state.aithreat - 20); // Effet direct en plus de tech.threat = -10
+            addMessage("Recherche en alignement IA avancée ! Meilleur contrôle et menace réduite.");
+            break;
     }
     addMessage(`Technologie "${tech.name}" acquise! ${tech.effect}`);
 
