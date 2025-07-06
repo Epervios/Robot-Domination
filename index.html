@@ -144,7 +144,8 @@ const techTree = {
     { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:10, researchTime: 35000 },
     { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:15, researchTime: 40000 },
     { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:12, researchTime: 45000 },
-    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:18, researchTime: 38000 }
+    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:18, researchTime: 38000 },
+    { id:'ethical_oversight_protocols', name:'Protocoles Supervision Éthique', cost:{money:1200000, research:750}, effect:'+15 Contrôle Joueur, -10 Menace IA', desc:'Renforce la supervision humaine et les audits éthiques.', threat:-5, researchTime:35000 }
   ],
   3: [
     { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3000, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:8, researchTime: 50000 }, // Affecte state.efficiency
@@ -664,6 +665,11 @@ function applyTechEffect(tech) {
         case 'predictive_ai_1': state.demandModifier *= 1.1; state.baseDemand += 0.05; break; // Ajusté impact baseDemand
         case 'neural_networks_1': state.researchSpeed *= 1.2; break;
         case 'market_manipulation_1': state.demandModifier *= 1.15; state.reputation -=5; break;
+        case 'ethical_oversight_protocols':
+            state.playercontrol = Math.min(100, state.playercontrol + 15);
+            state.aithreat = Math.max(0, state.aithreat - 10); // La menace de la tech elle-même (-5) sera aussi appliquée
+            addMessage("Protocoles de supervision éthique renforcés. Contrôle accru, menace réduite.");
+            break;
         // human_optimization_1 est dans techTree[3] mais son effet est dupliqué ci-dessous, à vérifier
         // case 'human_optimization_1': state.productionCostModifier *= 0.95; state.aithreat += 5; break;
         case 'global_network_1': state.market = Math.min(100, state.market + 10); state.demandModifier *= 1.1; break;
