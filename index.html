@@ -28,7 +28,10 @@
     .choicebtn{margin-bottom:7px;}
     .research-progressbar {background:#353557; border-radius:6px; height:12px; margin-top:7px;}
     .research-progress {background:#38bdf8;height:100%;border-radius:6px;transition:width 0.2s;}
+    .research-progress-ia {background:#14b8a6;height:100%;border-radius:6px;transition:width 0.2s;} /* Turquoise */
     .research-label {font-size:0.93em;color:#fbbf24;margin-top:2px;}
+    .info-group { padding-top: 8px; margin-top: 8px; border-top: 1px solid #393950; }
+    .techbtn.completed-by-ia { background: #0d9488 !important; border: 1px solid #14b8a6; } /* Vert foncé, !important pour prioriser sur :disabled */
   </style>
 </head>
 <body>
@@ -55,22 +58,27 @@
     <br>
     <div class="grid">
       <div class="card">
-        <b>Production</b><br><br>
+        <b>🤖 Production</b><br><br>
         <button class="actionbtn" id="btnCreate">Créer Robot (<span id="robotCostDisplay">5000</span>$ + <span id="costEnergy">10</span> ⚡)</button>
         <div id="manualProgressDisplayContainer" style="font-size:0.9em; color:#86efac; margin-top:4px; height:1.2em; text-align:center; display:none;">
             <span id="manualProgressDisplay"></span>
         </div>
         <div style="font-size:0.98em;color:#bbb; margin-top:6px;">
-          Efficacité Prod.: <span id="efficiency">1.0</span> r/cycle<br>
-          Coût Production Robot: <span id="prodCostInfo">5000</span>$<br>
-          Satisfaction client : <span id="satisfaction">85</span>%<br>
-          Part de marché : <span id="market">0</span>%
-          <div id="autoProduction" class="auto" style="display:none;">✓ Production automatique</div>
+          <div class="info-group">
+            📈 Efficacité Prod.: <span id="efficiency">1.0</span> r/cycle<br>
+            💰 Coût Production Robot: <span id="prodCostInfo">5000</span>$
+          </div>
+          <div class="info-group">
+            😊 Satisfaction client : <span id="satisfaction">85</span>%<br>
+            📊 Part de marché : <span id="market">0</span>%
+          </div>
+          <div id="autoProduction" class="auto info-group" style="display:none;">✓ Production automatique</div>
         </div>
       </div>
       <div class="card">
         <b>Recherche & Innovations</b><br><br>
         <div id="techtree"></div>
+        <div id="autoResearchDisplay" class="auto" style="display:none; margin-top:8px;">✓ Recherche automatique</div>
         <div style="font-size:0.90em;margin-top:10px;color:#ccc;">Techs acquises : <span id="completedtechs">aucune</span></div>
       </div>
       <div class="card">
@@ -149,14 +157,14 @@ const techTree = {
   ],
   3: [ // Géant Technologique
     { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3500, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:2, researchTime: 50000 },
-    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4500, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:8, researchTime: 60000 },
+    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4500, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:12, researchTime: 60000 },
     { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:4000, money:1500000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:4, researchTime: 55000 },
     { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:6000, money:2500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:10, researchTime: 70000 },
     { id:'advanced_robot_factories_1', name:'Usines de Robots Modulaires', cost:{money: 2800000, research: 2500}, effect:'Production Base +1 r/cycle, Efficacité x1.2', desc:'Déploiement d\'usines modulaires hautement automatisées.', threat:5, researchTime:60000 }
   ],
   4: [ // Entité Autonome
     { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:10000, money:5000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:15, researchTime: 80000 },
-    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:8000, money:4000000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:12, researchTime: 75000 },
+    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:8000, money:4000000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:18, researchTime: 75000 },
     { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:12000, money:6000000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:20, researchTime: 78000 },
     { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:15000, money:5000000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:5, researchTime: 90000 },
     { id:'self_replicating_fabricators', name:'Fabricateurs Auto-Réplicants', cost:{money: 12000000, research: 6000}, effect:'Production Base +3 r/cycle, Efficacité x1.5', desc:'Nuées de nanobots et assembleurs auto-réplicants.', threat:15, researchTime:90000 },
@@ -286,6 +294,7 @@ function resetGame(){
     lastWorryMessageTime: 0,
     lastPanicMessageTime: 0,
     lastAutoResearchLaunchTime: 0, // Pour le cooldown de l'auto-recherche
+    completedTechsByIA: [], // Pour suivre les techs complétées par l'IA
   };
   messageQueue = [
     "Bienvenue à RobotCorp! Objectif: Domination IA. Prix robot: 15000$. Coût prod: " + (state.productionCostPerRobot * state.productionCostModifier) +"$. Commencez par la R&D!"
@@ -474,7 +483,13 @@ function updateUI(){
                   !currentCanAct || // Utiliser la variable déjà calculée
                   state.completedTechs.includes(tech.id) ||
                   researchQueue.some(q => q.id === tech.id);
-      techtxt+=`<button class="techbtn" ${dis?"disabled":""} data-tid="${tech.id}">
+
+      let btnClass = "techbtn";
+      if (state.completedTechsByIA.includes(tech.id)) {
+        btnClass += " completed-by-ia";
+      }
+
+      techtxt+=`<button class="${btnClass}" ${dis?"disabled":""} data-tid="${tech.id}">
         <b>${tech.name}</b> <span style="float:right;">+${tech.threat}⚠️</span><br>
         <span style="font-size:0.9em;">${tech.desc}</span><br>
         <span style="font-size:0.9em; color:#ddd;">Effet: ${tech.effect}</span><br>
@@ -482,16 +497,16 @@ function updateUI(){
       </button>`;
     }
 
-    // Placeholder pour la barre de progression de recherche. Elle sera remplie par updateResearchProgressUIOnly si besoin.
-    // Ou affichée correctement si une recherche est en cours au moment de cette reconstruction.
+    // Barre de progression de recherche
     if (researchQueue.length > 0) {
         let rq = researchQueue[0];
         let perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus))*100);
+        let progressBarClass = rq.byIA ? "research-progress-ia" : "research-progress";
         techtxt += `
           <div id="researchProgressContainer">
-            <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours… (${perc}%)</div>
+            <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours ${rq.byIA ? "(par IA)" : ""}… (${perc}%)</div>
             <div class="research-progressbar">
-              <div id="researchProgressBar" class="research-progress" style="width:${perc}%"></div>
+              <div id="researchProgressBar" class="${progressBarClass}" style="width:${perc}%"></div>
             </div>
           </div>`;
     } else {
@@ -516,6 +531,8 @@ function updateUI(){
   }).join(", ");
   completedtechs.textContent = state.completedTechs.length === 0 ? "aucune" : completedTechNames;
 
+  const autoResearchDisplay = document.getElementById('autoResearchDisplay');
+  if (autoResearchDisplay) autoResearchDisplay.style.display = state.autoResearch ? "block" : "none";
   autoProduction.style.display = state.autoProduction?"block":"none";
   updateMessages();
 }
@@ -708,27 +725,30 @@ function applyTechEffect(tech) {
         // case 'human_optimization_1': state.productionCostModifier *= 0.95; state.aithreat += 5; break;
         case 'global_network_1': state.market = Math.min(100, state.market + 10); state.demandModifier *= 1.1; break;
         case 'consciousness_proto_1': state.researchSpeed *= 1.1; state.aithreat += 10; break;
-        case 'superintelligence_1': state.researchSpeed *= 1.5; state.aithreat += 15; state.playercontrol -=10; break;
+        case 'superintelligence_1': state.researchSpeed *= 1.5; /* state.aithreat += 15; */ state.playercontrol -=10; break; // aithreat gérée par tech.threat=15
         case 'total_automation_1':
             state.productionCostModifier *= 0.7;
             state.energyCostModifier *=0.8;
-            state.aithreat += 10;
             state.humans = Math.max(0, state.humans - 500000000);
             addMessage("L'automatisation totale réduit les coûts mais des millions d'emplois sont perdus.");
             break;
-        case 'human_optimization_1': // Assurer que c'est le bon ID, il est aussi dans techTree[3]
+        case 'human_optimization_1':
             state.productionCostModifier *= 0.95;
-            state.aithreat += 5;
             state.humans = Math.max(0, state.humans - 200000000);
             addMessage("L'optimisation des RH via IA augmente l'efficacité, mais à quel coût humain ?");
             break;
         case 'social_control_1':
-            state.reputation +=20;
-            state.satisfaction +=10;
+            state.reputation = Math.min(150, state.reputation + 30); // Plafonner la réputation pour éviter des valeurs extrêmes
+            state.satisfaction = Math.min(120, state.satisfaction + 20); // Plafonner la satisfaction
             // state.aithreat +=15; // Déjà pris en compte par tech.threat et la formule générique
             // state.playercontrol -=15; // Géré par la formule générique basée sur tech.threat
             state.humans = Math.max(0, state.humans - 300000000);
-            addMessage("L'IA modèle l'opinion publique, la société est sous influence.");
+            addMessage("L'IA modèle l'opinion publique, la société est sous influence. Réputation et satisfaction en hausse.");
+            break;
+        case 'space_expansion_1':
+            state.demandModifier *= 1.5;
+            state.baseDemand += 1.5;
+            addMessage("L'expansion spatiale ouvre de vastes nouveaux marchés ! La demande augmente considérablement.");
             break;
         case 'ai_alignment_research':
             state.playercontrol = Math.min(100, state.playercontrol + 15);
@@ -770,6 +790,11 @@ function gameLoop(){
 
     if(rq.timeElapsed >= rq.duration){
       state.completedTechs.push(rq.id);
+      if (rq.byIA) { // Si la recherche a été marquée comme lancée par l'IA
+        if (!state.completedTechsByIA.includes(rq.id)) { // Éviter les doublons si jamais
+            state.completedTechsByIA.push(rq.id);
+        }
+      }
       applyTechEffect(rq);
       researchQueue.shift();
       state.currentResearchTimePenalty = 1;
@@ -853,7 +878,7 @@ function gameLoop(){
 
 
   // === Recherche Automatique ===
-  const AUTO_RESEARCH_COOLDOWN = 20000; // 20 secondes
+  const AUTO_RESEARCH_COOLDOWN = 45000; // 45 secondes (était 20s, rétablir la valeur du commit précédent)
   if(state.autoResearch && researchQueue.length === 0 && canAct() &&
      (Date.now() - (state.lastAutoResearchLaunchTime || 0) > AUTO_RESEARCH_COOLDOWN) ){
     let availableForAutoResearch = availableTechs().filter(t =>
@@ -867,7 +892,7 @@ function gameLoop(){
 
       if(techToResearch.cost.money) state.money -= techToResearch.cost.money;
       if(techToResearch.cost.research) state.research -= techToResearch.cost.research;
-      researchQueue.push({...techToResearch, timeElapsed: 0, duration: techToResearch.researchTime });
+      researchQueue.push({...techToResearch, timeElapsed: 0, duration: techToResearch.researchTime, byIA: true }); // Marquer comme lancée par l'IA
 
       state.lastAutoResearchLaunchTime = Date.now(); // Mettre à jour le temps du dernier lancement
       addMessage(`Recherche auto: "${techToResearch.name}" lancée.`);
@@ -1035,8 +1060,11 @@ function updateResearchProgressUIOnly() {
         const researchProgressBar = document.getElementById('researchProgressBar');
 
         if (researchProgressContainer) researchProgressContainer.style.display = 'block';
-        if (researchProgressLabel) researchProgressLabel.textContent = `Recherche "${rq.name}" en cours… (${perc}%)`;
-        if (researchProgressBar) researchProgressBar.style.width = `${perc}%`;
+        if (researchProgressLabel) researchProgressLabel.textContent = `Recherche "${rq.name}" en cours ${rq.byIA ? "(par IA)" : ""}… (${perc}%)`;
+        if (researchProgressBar) {
+            researchProgressBar.style.width = `${perc}%`;
+            researchProgressBar.className = rq.byIA ? 'research-progress-ia' : 'research-progress';
+        }
     } else {
         const researchProgressContainer = document.getElementById('researchProgressContainer');
         if (researchProgressContainer) researchProgressContainer.style.display = 'none';
