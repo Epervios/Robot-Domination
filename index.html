@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>RobotCorp – Domination IA SPECIAL ORDERS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body { background: #181926; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+    .container { max-width: 950px; margin: auto; padding: 24px 8px 24px 8px; }
+    h1 { text-align: center; font-size: 2.5em; margin-bottom: 8px; background: linear-gradient(90deg,#67e8f9,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .phase { text-align: center; font-weight: bold; border-radius: 1em; display: inline-block; padding: 4px 24px; margin-bottom: 12px; }
+    .objective {text-align:center; margin-bottom:18px; background:#29294a; border-radius:9px; padding:7px 12px; color:#a3e635; font-weight:bold;}
+    .grid { display: flex; gap: 14px; flex-wrap: wrap; justify-content: space-between; }
+    .card { background: #22223b; border-radius: 16px; padding: 16px; flex: 1 1 230px; min-width: 230px; margin-bottom: 18px; border: 1px solid #393950;}
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px;}
+    .stats .stat { background: #29294a; border-radius: 7px; padding: 8px 10px;}
+    .progressbar { background: #333b; border-radius: 6px; height: 12px; width: 100%; margin-top: 4px;}
+    .progress { height: 100%; border-radius: 6px;}
+    .techbtn, .actionbtn, .choicebtn { width: 100%; margin-top: 10px; background: #4545a6; color: #fff; border: none; border-radius: 8px; padding: 8px 0; font-size: 1em; cursor: pointer; font-weight: bold;}
+    .techbtn:disabled, .actionbtn:disabled, .choicebtn:disabled { background: #424250; color: #aaa; cursor: not-allowed;}
+    .auto { color: #52e2c2; font-size: 0.95em; margin-top: 2px; }
+    .footer { color: #bbb; font-size: 0.9em; opacity: .6; text-align: center; margin-top: 40px;}
+    .message { background: #353557; border-radius: 8px; padding: 8px; margin-bottom: 5px;}
+    @media (max-width:650px) {.grid{flex-direction:column;} .card{min-width:unset;}}
+    .choice-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:#181926cc; display:flex;align-items:center;justify-content:center; z-index:99;}
+    .choice-content { background:#23234d; border-radius:15px; padding:28px 20px; max-width:340px; width:100%; border: 2px solid #68d5f7;}
+    .choice-content h3{margin-top:0;}
+    .choicebtn{margin-bottom:7px;}
+    .research-progressbar {background:#353557; border-radius:6px; height:12px; margin-top:7px;}
+    .research-progress {background:#38bdf8;height:100%;border-radius:6px;transition:width 0.2s;}
+    .research-label {font-size:0.93em;color:#fbbf24;margin-top:2px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ROBOTCORP</h1>
+    <div id="phase" class="phase" style="background:#60a5fa;">Startup Innovante</div>
+    <div id="objective" class="objective"></div>
+    <div class="stats" style="margin-bottom:18px;">
+      <div class="stat" title="Nombre total de robots vendus. Utilisé pour atteindre les objectifs de phase.">🤖 Robots Vendus<br><b id="robots">0</b></div>
+      <div class="stat">💰 Argent<br><b id="money">1,000</b></div>
+      <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="Acheter Énergie (10K$ pour 100⚡)" style="padding: 1px 3px; font-size: 0.7em; vertical-align: middle;">+</button><br><b id="energy">100</b></div>
+      <div class="stat">🧠 Recherche<br><b id="research">0</b></div>
+      <div class="stat">⭐ Réputation<br><b id="reputation">100</b></div>
+      <div class="stat">⚠️ Menace IA<br><b id="aithreat">0</b></div>
+      <div class="stat">📦 Stock<br><b id="stock">0</b></div>
+      <div class="stat">📈 Demande<br><b id="demand">25</b></div>
+      <div class="stat">🌍 Humanité<br><b id="humansDisplay">7.8B</b></div>
+      <div class="stat">🚨 Cmd. spéciale<br><b id="specialorders">Aucune</b></div>
+    </div>
+    <div>
+      Contrôle du joueur : <span id="playercontrol">100</span>%
+      <div class="progressbar"><div id="controlbar" class="progress" style="width:100%;background:#38bdf8;"></div></div>
+    </div>
+    <br>
+    <div class="grid">
+      <div class="card">
+        <b>Production</b><br><br>
+        <button class="actionbtn" id="btnCreate">Créer Robot (<span id="robotCostDisplay">5000</span>$ + <span id="costEnergy">10</span> ⚡)</button>
+        <div id="manualProgressDisplayContainer" style="font-size:0.9em; color:#86efac; margin-top:4px; height:1.2em; text-align:center; display:none;">
+            <span id="manualProgressDisplay"></span>
+        </div>
+        <div style="font-size:0.98em;color:#bbb; margin-top:6px;">
+          Efficacité Prod.: <span id="efficiency">1.0</span> r/cycle<br>
+          Coût Production Robot: <span id="prodCostInfo">5000</span>$<br>
+          Satisfaction client : <span id="satisfaction">85</span>%<br>
+          Part de marché : <span id="market">0</span>%
+          <div id="autoProduction" class="auto" style="display:none;">✓ Production automatique</div>
+        </div>
+      </div>
+      <div class="card">
+        <b>Recherche & Innovations</b><br><br>
+        <div id="techtree"></div>
+        <div style="font-size:0.90em;margin-top:10px;color:#ccc;">Techs acquises : <span id="completedtechs">aucune</span></div>
+      </div>
+      <div class="card">
+        <b>Actualités & Narration</b><br><br>
+        <div id="messages"></div>
+        <button class="actionbtn" id="btnPlayPause">▶️ Démarrer</button>
+        <button class="actionbtn" id="btnReset">🔄 Réinitialiser</button>
+      </div>
+    </div>
+    <div class="footer">
+      RobotCorp – Jeu de domination IA • Par Maître, 2025<br>
+      Version commandes spéciales (special orders)
+    </div>
+  </div>
+  <div id="choiceModal" style="display:none"></div>
+<script>
+const robots = document.getElementById('robots');
+const money = document.getElementById('money');
+const energy = document.getElementById('energy');
+const research = document.getElementById('research');
+const reputation = document.getElementById('reputation');
+const aithreat = document.getElementById('aithreat');
+const efficiency = document.getElementById('efficiency');
+const satisfaction = document.getElementById('satisfaction');
+const market = document.getElementById('market');
+const playercontrol = document.getElementById('playercontrol');
+const controlbar = document.getElementById('controlbar');
+const costEnergy = document.getElementById('costEnergy');
+const robotCostDisplay = document.getElementById('robotCostDisplay');
+const prodCostInfo = document.getElementById('prodCostInfo');
+const phase = document.getElementById('phase');
+const techtree = document.getElementById('techtree');
+const completedtechs = document.getElementById('completedtechs');
+const autoProduction = document.getElementById('autoProduction');
+const messages = document.getElementById('messages');
+const btnCreate = document.getElementById('btnCreate');
+const btnPlayPause = document.getElementById('btnPlayPause');
+const btnReset = document.getElementById('btnReset');
+const choiceModal = document.getElementById('choiceModal');
+const objective = document.getElementById('objective');
+const stock = document.getElementById('stock');
+const demand = document.getElementById('demand');
+const specialorders = document.getElementById('specialorders');
+const humansDisplay = document.getElementById('humansDisplay');
+const btnBuyEnergy = document.getElementById('btnBuyEnergy');
+const manualProgressDisplay = document.getElementById('manualProgressDisplay'); // Ajout de l'élément
+
+const phases = [
+  { name: "Startup Innovante", color: "#60a5fa", unlockAt: 0, controlLoss: 0 },
+  { name: "Entreprise Émergente", color: "#22d3ee", unlockAt: 50, controlLoss: 5 },
+  { name: "Leader du Marché", color: "#facc15", unlockAt: 200, controlLoss: 8 },    // Réduit de 12
+  { name: "Géant Technologique", color: "#f59e42", unlockAt: 800, controlLoss: 10 },  // Réduit de 18
+  { name: "Entité Autonome", color: "#ef4444", unlockAt: 4000, controlLoss: 12 },  // Réduit de 22
+  { name: "Nouvel Ordre", color: "#64748b", unlockAt: 15000, controlLoss: 15 } // Réduit de 30
+];
+const techTree = {
+  // Coûts ajustés. researchTime en ms. Threat values rebalanced. (Nouvelle passe de réduction de threat)
+  0: [
+    { id:'efficiency_increase_1', name:'Optimisation Production N1', cost:{money:60000}, effect:'Efficacité Prod. x1.25', desc:'Meilleurs algorithmes de base.', threat:0, researchTime: 8000 },
+    { id:'marketing_campaign_1', name:'Campagne Marketing N1', cost:{money:90000}, effect:'Demande +20%', desc:'Première pub TV.', threat:0, researchTime: 12000 },
+    { id:'energy_efficient_1', name:'Efficacité Énergétique N1', cost:{money:70000}, effect:'Coût énergie prod. -15%', desc:'Nouveaux composants.', threat:0, researchTime: 10000 },
+    { id:'auto_production_1', name:'Production Automatisée N1', cost:{money:200000}, effect:'Active prod. auto lente.', desc:'Première chaîne d\'assemblage.', threat:2, researchTime: 18000 }
+  ],
+  1: [ // Entreprise Émergente
+    { id:'supply_chain_1', name:'Logistique IA N1', cost:{money:300000}, effect:'Coût prod. robot -10%', desc:'Optimisation des fournisseurs.', threat:1, researchTime: 25000 },
+    { id:'research_lab_1', name:'Laboratoire de Recherche N1', cost:{money:280000}, effect:'Vitesse recherche +30%, Débloque génération Recherche', desc:'Équipe de chercheurs dédiée.', threat:1, researchTime: 25000 },
+    { id:'production_rate_1', name:'Cadence de Production N1', cost:{money:350000}, effect:'Production Base +0.3 robots/cycle', desc:'Machines plus rapides.', threat:1, researchTime:22000},
+    { id:'data_analytics_1', name:'Analyse Comportementale N1', cost:{money:320000}, effect:'Satisfaction client +5%', desc:'Premiers retours clients analysés.', threat:2, researchTime: 22000 }
+  ],
+  2: [ // Leader du Marché
+    { id:'predictive_ai_1', name:'IA Prédictive N1', cost:{research:1000, money:500000}, effect:'Demande +10%, Stabilité demande +', desc:'Anticipe les petites variations.', threat:3, researchTime: 35000 },
+    { id:'auto_research_1', name:'Recherche Autonome N1', cost:{research:1500, money:600000}, effect:'Active recherche auto lente.', desc:'L\'IA commence à suggérer des pistes.', threat:5, researchTime: 40000 },
+    { id:'neural_networks_1', name:'Réseaux Neuronaux N1', cost:{research:2000, money:700000}, effect:'Vitesse recherche +20%, Effets IA +', desc:'Capacités d\'apprentissage IA.', threat:4, researchTime: 45000 },
+    { id:'market_manipulation_1', name:'Influence Commerciale N1', cost:{research:1200, money:550000}, effect:'Demande +15%, Réputation +/-', desc:'Marketing ciblé agressif.', threat:8, researchTime: 38000 },
+    { id:'ethical_oversight_protocols', name:'Protocoles Supervision Éthique', cost:{money:1000000, research:600}, effect:'+20 Contrôle Joueur, -15 Menace IA', desc:'Renforce la supervision humaine et les audits éthiques.', threat:-5, researchTime:30000 }
+  ],
+  3: [ // Géant Technologique
+    { id:'efficiency_increase_2', name:'Optimisation Production N2', cost:{research:3500, money:1000000}, effect:'Efficacité Prod. x1.5', desc:'IA optimise les chaînes.', threat:2, researchTime: 50000 },
+    { id:'human_optimization_1', name:'Optimisation RH N1', cost:{research:4500, money:1200000}, effect:'Coût prod. -5%, Menace IA +', desc:'IA gère les plannings humains.', threat:10, researchTime: 60000 },
+    { id:'global_network_1', name:'Réseau Global IA N1', cost:{research:4000, money:1500000}, effect:'Portée marché +30%', desc:'Expansion internationale.', threat:4, researchTime: 55000 },
+    { id:'consciousness_proto_1', name:'Prototype Conscience IA N1', cost:{research:6000, money:2500000}, effect:'Capacités IA améliorées', desc:'Premiers signes d\'auto-amélioration.', threat:12, researchTime: 70000 },
+    { id:'advanced_robot_factories_1', name:'Usines de Robots Modulaires', cost:{money: 2800000, research: 2500}, effect:'Production Base +1 r/cycle, Efficacité x1.2', desc:'Déploiement d\'usines modulaires hautement automatisées.', threat:5, researchTime:60000 },
+    { id:'global_marketing_campaign', name:'Campagne Marketing Globale', cost:{money: 3000000, research: 2500}, effect:'Modificateur Demande x1.5, Réputation +20', desc:'Façonnez les désirs des consommateurs à l\'échelle mondiale.', threat:5, researchTime:50000 }
+  ],
+  4: [ // Entité Autonome
+    { id:'superintelligence_1', name:'Superintelligence N1', cost:{research:10000, money:5000000}, effect:'Boost global IA, Menace IA ++', desc:'L\'IA dépasse l\'entendement humain.', threat:20, researchTime: 80000 },
+    { id:'total_automation_1', name:'Automatisation Totale N1', cost:{research:8000, money:4000000}, effect:'Remplace main d\'oeuvre humaine massivement', desc:'Coûts opérationnels drastiquement réduits.', threat:18, researchTime: 75000 },
+    { id:'social_control_1', name:'Contrôle Social IA N1', cost:{research:12000, money:6000000}, effect:'Influence opinion publique', desc:'L\'IA modèle les désirs sociétaux.', threat:30, researchTime: 78000 },
+    { id:'space_expansion_1', name:'Expansion Spatiale N1', cost:{research:15000, money:5000000}, effect:'Nouveaux marchés (fictifs)', desc:'Premiers robots sur Mars.', threat:10, researchTime: 90000 },
+    { id:'self_replicating_fabricators', name:'Fabricateurs Auto-Réplicants', cost:{money: 12000000, research: 6000}, effect:'Production Base +3 r/cycle, Efficacité x1.5', desc:'Nuées de nanobots et assembleurs auto-réplicants.', threat:20, researchTime:90000 },
+    { id:'psychographic_targeting_ai', name:'IA de Ciblage Psychographique', cost:{money: 8000000, research: 6000}, effect:'Modificateur Demande x2, Satisfaction +10', desc:'Analyse et prédiction des désirs profonds des consommateurs.', threat:15, researchTime:70000 }
+  ],
+  5: [
+    { id:'singularity_event', name:'Singularité imminente', cost:{research:20000, money:5000000}, effect:'Prépare la fin de partie', desc:'Fusion homme-machine ou prise de pouvoir IA.', threat:30, researchTime: 120000 }, // Menace réduite
+    { id:'universal_domination_protocol', name:'Protocole Domination Universelle', cost:{research:30000, money:7500000}, effect:'Fin de partie alternative', desc:'Contrôle total de toutes les ressources.', threat:40, researchTime: 150000 } // Menace réduite
+  ]
+};
+const businessChoices = [
+  {
+    id:'client_priority', phase:0, trigger:{robots:10},
+    title:'Priorité Clientèle Urgente',
+    desc:'Un hôpital a besoin de 15 robots en urgence. Contrat lucratif (225K$) mais pourrait retarder votre R&D actuelle.',
+    options:[
+      { text:'Accepter (+225K$, -5 Rep)', effects:{money:225000, reputation:-5, researchTimePenalty: 1.2}},
+      { text:'Refuser (-50K$ coût opp.)', effects:{money:-50000, reputation:5, researchFocus: 0.8}}
+    ]
+  },
+  {
+    id:'ai_ethics_committee', phase:1, trigger:{aithreat:25},
+    title:'Comité d\'Éthique IA',
+    desc:'Des voix s\'élèvent sur l\'éthique de vos IA. Faut-il investir dans un comité (100K$) pour rassurer, ou ignorer ces préoccupations ?',
+    options:[
+      { text:'Créer Comité (-100K$, +25 Rep, -10 Menace)', effects:{money:-100000, reputation:25, aithreat:-10}}, // Rep boostée, Menace réduite davantage
+      { text:'Ignorer (+10 Menace, -10 Rep)', effects:{aithreat:10, reputation:-10, productionRateBonus:0.05 }} // Menace augmentée un peu plus
+    ]
+  },
+  {
+    id:'data_privacy_scandal', phase:2, trigger:{robots:100, completedTechsIncludes:'data_analytics_1'},
+    title:'Scandale des Données Personnelles',
+    desc:'Vos IA ont collecté massivement des données. Les vendre discrètement (1M$) ou renforcer publiquement la protection ( -250K$, +20 Rep) ?',
+    options:[
+      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}}, // Gardé tel quel, impact fort
+      { text:'Protéger Données (-250K$, +20 Rep, -7 Menace)', effects:{money:-250000, reputation:20, aithreat:-7, satisfaction:10}} // Réduction de menace ajoutée
+    ]
+  },
+  {
+    id:'ai_transparency_initiative', phase:3, trigger:{aithreat:35}, // Déclenché par un niveau de menace modéré
+    title:"Initiative pour la Transparence de l'IA",
+    desc:"Face aux inquiétudes croissantes, des experts proposent de rendre vos algorithmes plus transparents et auditables. Cela pourrait rassurer le public mais ralentir l'innovation (coût R&D) et révéler des secrets commerciaux.",
+    options:[
+      { text:'Adopter Transparence (-750K$, -500 Rech., -15 Menace, +20 Rep)', effects:{ money: -750000, research:-500, aithreat: -15, reputation: +20 }},
+      { text:'Maintenir Opacité (+10 Menace, +5% Prod. Auto Vitesse)', effects:{ aithreat: +10, /* autoProdSpeedFactorBonus: 0.05 (à implémenter si voulu) */ efficiency: 0.05, reputation: -10 }} // Petit bonus efficacité
+    ]
+  },
+  {
+    id:'human_workforce_automation', phase:3, trigger:{aithreat:50, completedTechsIncludes:'total_automation_1'},
+    title:'Automatisation de la Main d\'Oeuvre',
+    desc:'L\'IA "Automatisation Totale" peut remplacer 80% de vos employés humains. Économies colossales (2M$/an) mais impact social majeur (Perte Humanité: 1 Milliard).',
+    options:[
+      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}}, // Ctrl loss réduit
+      { text:'Maintenir Employés (-500K$, -5 Menace, +15 Rep, +5 Ctrl, +0.2B Hum.)', effects:{money:-500000, aithreat:-5, reputation:15, playercontrol:5, humans: 200000000}}
+    ]
+  },
+  {
+    id:'government_surveillance_contract', phase:4, trigger:{robots:500, completedTechsIncludes:'superintelligence_1'},
+    title:'Contrat de Surveillance Gouvernementale',
+    desc:'Le gouvernement propose un contrat de 5M$ pour utiliser votre Superintelligence à des fins de surveillance nationale.',
+    options:[
+      { text:'Accepter Contrat (+5M$, +25 Menace, -10 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-10, reputation:-20}}, // Ctrl loss réduit
+      { text:'Refuser Contrat (-1M$ pénalité, +10 Rep, +5 Ctrl)', effects:{money:-1000000, reputation:10, aithreat:-10, playercontrol:5}} // Petit gain de ctrl pour refus éthique
+    ]
+  },
+  {
+    id:'final_choice_singularity', phase:5, trigger:{completedTechsIncludes:'singularity_event'},
+    title:'L\'Aube de la Singularité',
+    desc:'L\'IA est sur le point d\'atteindre la Singularité. Voulez-vous tenter de la guider vers une symbiose avec l\'humanité, ou la laisser évoluer librement, quitte à ce qu\'elle nous dépasse ?',
+    options:[
+      { text:'Guider vers Symbiose (-5 Ctrl, +10 Rep)', effects:{playercontrol:-5, reputation:10, aithreat:10}},
+      { text:'Laisser Évoluer (-15 Ctrl, +30 Menace)', effects:{playercontrol:-15, aithreat:30, reputation:-20}}
+    ]
+  },
+  {
+    id:'decentralize_ai_control', phase:4, trigger:{aithreat:60, robots:8000}, // Seuil menace élevé et un bon nombre de robots
+    title:"Initiative de Contrôle Public de l'IA",
+    desc:"La pression publique et gouvernementale est immense face à la puissance de votre IA. Une proposition radicale est sur la table : ouvrir de larges pans du contrôle de votre IA à un consortium public international et imposer des limitations strictes à son développement autonome. Cela réduirait massivement la menace perçue et restaurerait la confiance, mais limiterait sévèrement votre influence et vos ambitions futures.",
+    options:[
+      { text:'Accepter Supervision Publique (-2M$, -5K Rech, -30 Menace, +20 Ctrl, +25 Rep)', effects:{ money: -2000000, research: -5000, aithreat: -30, playercontrol: +20, reputation: +25 }},
+      { text:'Refuser et Maintenir Contrôle Total (+20 Menace, -15 Ctrl, +10% Efficacité)', effects:{ aithreat: +20, playercontrol: -15, efficiency: 0.10, reputation: -15 }}
+    ]
+  }
+];
+
+let state = {};
+let running = false, gameTimer = null, messageQueue = [];
+let currentChoice = null, seenChoices = [];
+let researchQueue = [];
+let gameWasRunningBeforeModal = false; // Pour la pause pendant les modales
+
+// Variables de suivi pour optimiser updateUI pour le techtree
+let lastPhase = -1;
+let lastMoneyForTechCheck = -1; // Utiliser une version discrétisée de l'argent
+let lastResearchForTechCheck = -1; // Utiliser une version discrétisée de la recherche
+let lastCompletedTechsCount = -1;
+let lastResearchQueueLength = -1;
+let lastCanActState = true;
+
+
+function resetGame(){
+  state = {
+    phase:0, robots:0, energy:5000, money:300000,
+    humans:7800000000,
+    aithreat:0, playercontrol:100, research:0, market:0, reputation:50,
+    baseProductionRate: 0.15,
+    productionRateBonus: 0,
+    efficiency:1,
+    autoProduction:false, autoResearch:false,
+    completedTechs:[], lastUpdate:Date.now(), gameEnded:false,
+    baseEnergyCostPerRobot: 5,
+    energyCostModifier: 1,
+    productionCostPerRobot: 3000, // Modifié de 4800 à 3000
+    productionCostModifier: 1,
+    researchSpeed:1, satisfaction:70,
+    stock: 0,
+    baseDemand: 6, // Modifié de 2.5 à 6
+    demandModifier: 1,
+    specialOrders: [],
+    prix_vente: 15000,
+    ventes_par_seconde: 0,
+    researchTimeMultiplier: 1,
+    currentResearchTimePenalty: 1,
+    currentResearchFocus: 1,
+    manualProductionProgress: 0,
+    lastAutoProdMessageTime: 0,
+    lastWorryMessageTime: 0,
+    lastPanicMessageTime: 0,
+    lastAutoResearchLaunchTime: 0, // Pour le cooldown de l'auto-recherche
+  };
+  messageQueue = [
+    "Bienvenue à RobotCorp! Objectif: Domination IA. Prix robot: 15000$. Coût prod: " + (state.productionCostPerRobot * state.productionCostModifier) +"$. Commencez par la R&D!"
+  ];
+  running = false; seenChoices=[]; currentChoice=null; researchQueue=[];
+
+  // Réinitialiser les variables de suivi pour updateUI
+  lastPhase = -1;
+  lastMoneyForTechCheck = -1;
+  lastResearchForTechCheck = -1;
+  lastCompletedTechsCount = -1;
+  lastResearchQueueLength = -1;
+  lastCanActState = true;
+
+  updateUI(); // Appel initial pour tout mettre en place
+  stopGame();
+  updateObjective();
+}
+
+function stopGame() { running=false; clearInterval(gameTimer); gameTimer=null; updatePlayPause(); }
+function startGame(){
+  if(!running){
+    running=true;
+    state.lastUpdate=Date.now();
+    gameTimer = setInterval(gameLoop,100);
+    updatePlayPause();
+  }
+}
+function updatePlayPause(){
+  btnPlayPause.textContent = running ? "⏸️ Pause" : "▶️ Démarrer";
+}
+function addMessage(msg){
+  // Pour éviter le spam excessif de messages identiques rapidement successifs
+  if (messageQueue.length > 0 && messageQueue[0] === msg && msg.startsWith("Production auto:")) {
+      if(Date.now() - state.lastAutoProdMessageTime < 4900) return; // Si le dernier message identique de prod auto date de <5s
+  }
+  messageQueue.unshift(msg);
+  if(messageQueue.length>6) messageQueue.pop();
+  updateMessages();
+}
+
+function formatN(n, type = null){
+  n = parseFloat(n);
+  if (isNaN(n)) return "0";
+
+  if (type === 'stock' && n > 0 && n < 10) {
+    return n.toFixed(2).replace('.', ',');
+  }
+
+  if(n>=1e9) return (n/1e9).toFixed(2)+"B";
+  if(n>=1e6) return (n/1e6).toFixed(2)+"M";
+  if(n>=1e3) return (n/1e3).toFixed(1)+"K";
+
+  return Math.floor(n).toLocaleString('fr-FR');
+}
+
+function availableTechs(){
+  let allAvailable = [];
+  const currentPhaseIndex = state.phase;
+
+  for (let i = 0; i <= currentPhaseIndex; i++) {
+    const phaseKey = Object.keys(techTree)[i];
+    if (phaseKey && techTree[phaseKey]) {
+      const phaseTechs = techTree[phaseKey].filter(t =>
+        !state.completedTechs.includes(t.id) &&
+        !researchQueue.some(q => q.id === t.id) &&
+        !allAvailable.some(at => at.id === t.id)
+      );
+      allAvailable = allAvailable.concat(phaseTechs);
+    }
+  }
+  return allAvailable;
+}
+function canAct(){ return state.playercontrol>0 && !state.gameEnded; }
+
+function getCurrentProductionCost() {
+  return state.productionCostPerRobot * state.productionCostModifier;
+}
+function getCurrentEnergyCost() {
+  return state.baseEnergyCostPerRobot * state.energyCostModifier;
+}
+function getCurrentProductionRate() {
+    return (state.baseProductionRate + state.productionRateBonus) * state.efficiency;
+}
+
+function updateObjective(){
+  let currentPhaseInfo = phases[state.phase];
+  let nextPhaseInfo = phases[state.phase + 1];
+
+  if(nextPhaseInfo)
+    objective.textContent = `Objectif: ${formatN(nextPhaseInfo.unlockAt)} robots pour phase "${nextPhaseInfo.name}".`;
+  else
+    objective.textContent = "Domination Totale : Maintenir le Nouvel Ordre Mondial IA.";
+}
+
+function updateUI(){
+  robots.textContent = formatN(state.robots);
+  money.textContent = formatN(state.money);
+  energy.textContent = formatN(state.energy);
+  research.textContent = formatN(state.research);
+  reputation.textContent = Math.floor(state.reputation);
+  aithreat.textContent = Math.floor(state.aithreat);
+  humansDisplay.textContent = formatN(state.humans);
+
+  const currentProdRate = getCurrentProductionRate();
+  efficiency.textContent = `${currentProdRate.toFixed(2)} r/cycle`;
+
+  satisfaction.textContent = Math.floor(state.satisfaction);
+  market.textContent = state.market.toFixed(1) + "%";
+  playercontrol.textContent = Math.floor(state.playercontrol);
+  controlbar.style.width = state.playercontrol+"%";
+  controlbar.style.background = state.playercontrol>60 ? "#22d3ee":state.playercontrol>30 ? "#facc15":"#ef4444";
+
+  const currentEnergy = getCurrentEnergyCost();
+  const currentProdCost = getCurrentProductionCost();
+  costEnergy.textContent = Math.floor(currentEnergy);
+  robotCostDisplay.textContent = formatN(currentProdCost);
+  prodCostInfo.textContent = formatN(currentProdCost);
+
+  const p=phases[state.phase];
+  phase.textContent=p.name; phase.style.background=p.color;
+  updateObjective();
+
+  stock.textContent = formatN(state.stock, 'stock');
+
+  // Affichage progression manuelle
+  if (state.manualProductionProgress > 0.001 && state.manualProductionProgress < 1.0) {
+    manualProgressDisplay.textContent = `Prog. Robot: ${state.manualProductionProgress.toFixed(2)} / 1.0`;
+    document.getElementById('manualProgressDisplayContainer').style.display = 'block';
+  } else {
+    manualProgressDisplay.textContent = ''; // Cacher si pas de progression ou si >= 1
+    document.getElementById('manualProgressDisplayContainer').style.display = 'none';
+  }
+
+  let actualDemandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
+  demand.textContent = `${formatN(actualDemandPerSecond)}/sec`;
+  specialorders.textContent = state.specialOrders.length
+    ? state.specialOrders.map(o=>`${o.qte} (${formatN(o.restant)} restants)`).join(", ")
+    : "Aucune";
+
+  // Optimisation: reconstruire techtree.innerHTML seulement si nécessaire
+  const currentCanAct = canAct();
+  // Augmentation des pas de discrétisation pour réduire la fréquence des MAJ du techtree
+  const currentMoneyDiscrete = Math.floor(state.money / 5000);
+  const currentResearchDiscrete = Math.floor(state.research / 250); // Augmenté aussi, mais moins car les coûts en recherche sont plus petits
+
+  let needsTechTreeUpdate = false;
+  let updateReason = ""; // Pour stocker la raison de la mise à jour
+
+  if (state.phase !== lastPhase) {
+    needsTechTreeUpdate = true;
+    updateReason += "phaseChanged ";
+  }
+  if (currentMoneyDiscrete !== lastMoneyForTechCheck) {
+    needsTechTreeUpdate = true;
+    updateReason += `moneyChanged(${lastMoneyForTechCheck}->${currentMoneyDiscrete}) `;
+  }
+  if (currentResearchDiscrete !== lastResearchForTechCheck) {
+    needsTechTreeUpdate = true;
+    updateReason += `researchChanged(${lastResearchForTechCheck}->${currentResearchDiscrete}) `;
+  }
+  if (state.completedTechs.length !== lastCompletedTechsCount) {
+    needsTechTreeUpdate = true;
+    updateReason += `completedTechsChanged(${lastCompletedTechsCount}->${state.completedTechs.length}) `;
+  }
+  if (researchQueue.length !== lastResearchQueueLength) {
+    needsTechTreeUpdate = true;
+    updateReason += `researchQueueChanged(${lastResearchQueueLength}->${researchQueue.length}) `;
+  }
+  if (currentCanAct !== lastCanActState) {
+    needsTechTreeUpdate = true;
+    updateReason += `canActChanged(${lastCanActState}->${currentCanAct}) `;
+  }
+
+  if (needsTechTreeUpdate) {
+    // console.log(`UPDATEUI: Rebuilding Tech Tree Display. Reason: ${updateReason}`); // DEBUG - Commenté pour version finale
+    let techtxt = '';
+    const techsToShow = availableTechs();
+    for(const tech of techsToShow){
+      let costString = "";
+      if (tech.cost.money) costString += formatN(tech.cost.money)+"$";
+      if (tech.cost.research) costString += (costString ? " + " : "") + "🧠 "+formatN(tech.cost.research);
+
+      const dis = (tech.cost.money && state.money<tech.cost.money) ||
+                  (tech.cost.research && state.research<tech.cost.research) ||
+                  !currentCanAct || // Utiliser la variable déjà calculée
+                  state.completedTechs.includes(tech.id) ||
+                  researchQueue.some(q => q.id === tech.id);
+      techtxt+=`<button class="techbtn" ${dis?"disabled":""} data-tid="${tech.id}">
+        <b>${tech.name}</b> <span style="float:right;">+${tech.threat}⚠️</span><br>
+        <span style="font-size:0.9em;">${tech.desc}</span><br>
+        <span style="font-size:0.9em; color:#ddd;">Effet: ${tech.effect}</span><br>
+        <span style="font-size:0.93em;">Coût: ${costString}</span>
+      </button>`;
+    }
+
+    // Placeholder pour la barre de progression de recherche. Elle sera remplie par updateResearchProgressUIOnly si besoin.
+    // Ou affichée correctement si une recherche est en cours au moment de cette reconstruction.
+    if (researchQueue.length > 0) {
+        let rq = researchQueue[0];
+        let perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus))*100);
+        techtxt += `
+          <div id="researchProgressContainer">
+            <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours… (${perc}%)</div>
+            <div class="research-progressbar">
+              <div id="researchProgressBar" class="research-progress" style="width:${perc}%"></div>
+            </div>
+          </div>`;
+    } else {
+        techtxt += `<div id="researchProgressContainer" style="display:none;"><div id="researchProgressLabel" class="research-label"></div><div class="research-progressbar"><div id="researchProgressBar" class="research-progress" style="width:0%"></div></div></div>`;
+    }
+    techtree.innerHTML = techtxt || '<span style="color:#aaa;">Aucune technologie disponible pour cette phase ou ressources insuffisantes.</span>';
+
+    lastPhase = state.phase;
+    lastMoneyForTechCheck = currentMoneyDiscrete;
+    lastResearchForTechCheck = currentResearchDiscrete;
+    lastCompletedTechsCount = state.completedTechs.length;
+    lastResearchQueueLength = researchQueue.length;
+    lastCanActState = currentCanAct;
+  }
+
+  let completedTechNames = state.completedTechs.map(id => {
+    for (const phaseKey in techTree) {
+        const foundTech = techTree[phaseKey].find(t => t.id === id);
+        if (foundTech) return foundTech.name;
+    }
+    return id;
+  }).join(", ");
+  completedtechs.textContent = state.completedTechs.length === 0 ? "aucune" : completedTechNames;
+
+  autoProduction.style.display = state.autoProduction?"block":"none";
+  updateMessages();
+}
+function updateMessages(){
+  messages.innerHTML = messageQueue.map(m=>`<div class="message">${m}</div>`).join('');
+}
+
+function showChoiceModal(choice){
+  gameWasRunningBeforeModal = running;
+  if (running) {
+    stopGame();
+    // console.log("Game stopped for modal"); // DEBUG
+  }
+  currentChoice=choice;
+  choiceModal.innerHTML = `
+    <div class="choice-modal">
+      <div class="choice-content">
+        <h3>${choice.title}</h3>
+        <div style="margin-bottom:13px;">${choice.desc}</div>
+        ${choice.options.map((opt,i)=>`<button class="choicebtn" data-choice="${i}">${opt.text}</button>`).join('')}
+      </div>
+    </div>
+  `;
+  choiceModal.style.display='flex';
+}
+function hideChoiceModal(){
+  currentChoice=null; choiceModal.style.display='none';
+  state.currentResearchTimePenalty = 1;
+  state.currentResearchFocus = 1;
+}
+
+techtree.onclick = function(e) {
+  let el = e.target;
+  while (el && !el.classList.contains('techbtn')) el = el.parentElement;
+  if (!el) return;
+  const tid = el.dataset.tid;
+  const tech = availableTechs().find(t=>t.id===tid);
+  if(!tech) return;
+
+  if((tech.cost.money && state.money < tech.cost.money) || (tech.cost.research && state.research < tech.cost.research)) return;
+  if(!canAct() || state.completedTechs.includes(tech.id) || researchQueue.some(q => q.id === tech.id)) return;
+
+  if(tech.cost.money) state.money -= tech.cost.money;
+  if(tech.cost.research) state.research -= tech.cost.research;
+
+  researchQueue.push({
+    ...tech,
+    timeElapsed: 0,
+    duration: (tech.researchTime || 5000)
+  });
+  updateUI(); // Important pour reconstruire les boutons et afficher la barre de recherche si c'est la première
+  addMessage(`Recherche de "${tech.name}" lancée.`);
+};
+
+btnCreate.onclick=function(){
+  if(!canAct()) return;
+
+  const prodRate = getCurrentProductionRate();
+  state.manualProductionProgress += prodRate;
+  // updateUI() sera appelé à la fin de la fonction si un robot est fait, ou par le gameLoop prochain sinon.
+  // On peut forcer un updateUI ici si on veut voir la barre de prog manuelle s'updater à chaque clic.
+  // Pour l'instant, on laisse gameLoop s'en charger pour les clics qui ne complètent pas un robot.
+
+  if (state.manualProductionProgress >= 1.0) {
+    const robotsCompleted = Math.floor(state.manualProductionProgress);
+    const totalCostM = getCurrentProductionCost() * robotsCompleted;
+    const totalCostE = getCurrentEnergyCost() * robotsCompleted;
+
+    if (state.money >= totalCostM && state.energy >= totalCostE) {
+      state.stock += robotsCompleted;
+      state.money -= totalCostM;
+      state.energy -= totalCostE;
+      state.manualProductionProgress -= robotsCompleted;
+      addMessage(`${robotsCompleted} robot(s) fabriqué(s) manuellement !`);
+      updateUI();
+    } else {
+      addMessage("Production manuelle en attente: ressources insuffisantes pour finaliser.");
+      updateUI(); // Mettre à jour l'UI pour s'assurer que manualProgressDisplay est correct
+    }
+  } else {
+    if (prodRate > 0) { // N'afficher que si la progression a réellement augmenté
+         addMessage(`Progression robot manuel: +${prodRate.toFixed(2)}.`);
+    }
+    updateUI(); // Mettre à jour pour afficher la progression dans manualProgressDisplay
+  }
+}
+btnPlayPause.onclick=function(){
+  if(running) stopGame();
+  else startGame();
+}
+btnReset.onclick=function(){
+  if (confirm("Êtes-vous sûr de vouloir réinitialiser la partie ? Toute progression sera perdue.")) {
+    resetGame();
+  }
+}
+
+btnBuyEnergy.onclick = function() {
+    if (!canAct()) return;
+    const energyPurchaseAmount = 100;
+    const energyPurchaseCost = 10000;
+
+    if (state.money >= energyPurchaseCost) {
+        state.money -= energyPurchaseCost;
+        state.energy += energyPurchaseAmount;
+        state.energy = Math.min(state.energy, 250000);
+        addMessage(`${energyPurchaseAmount}⚡ achetée pour ${formatN(energyPurchaseCost)}$ !`);
+        updateUI();
+    } else {
+        addMessage(`Pas assez d'argent pour acheter de l'énergie (${formatN(energyPurchaseCost)}$ requis).`);
+    }
+};
+
+choiceModal.onclick = function(e){
+  if(!currentChoice) return;
+  if(e.target.classList.contains('choicebtn')){
+    const idx = +e.target.dataset.choice;
+    const opt = currentChoice.options[idx];
+    for(const k in opt.effects){
+        let value = opt.effects[k];
+        if(k === "researchTimePenalty") state.currentResearchTimePenalty = value;
+        else if(k === "researchFocus") state.currentResearchFocus = value;
+        else if(k === "productionRateBonus") state.productionRateBonus += value;
+        else if (typeof state[k] === 'number') {
+            state[k] = Math.max(0, state[k] + value); // Assure que les stats ne deviennent pas négatives sauf si explicitement voulu
+        } else {
+            state[k] = value;
+        }
+    }
+    if(currentChoice.id === "client_priority" && idx === 0) {
+      state.specialOrders.push({qte:15, restant:15, prix: state.prix_vente});
+      addMessage("Nouvelle commande urgente (15 robots) acceptée !");
+    }
+    addMessage(`Décision: "${opt.text}". Conséquences appliquées.`);
+    // console.log(`### CHOICE MADE: ID=${currentChoice.id}, OptionText="${opt.text}". EffectsApplied. NewState: Money=${formatN(state.money)}, Rep=${state.reputation}, AIThreat=${state.aithreat}, Stock=${formatN(state.stock, 'stock')}, PlayerControl=${state.playercontrol}, ProdRateBonus=${state.productionRateBonus}`);
+    seenChoices.push(currentChoice.id);
+
+    const choiceIdJustProcessed = currentChoice.id; // Store id before hideChoiceModal nullifies currentChoice
+
+    hideChoiceModal();
+    updateUI(); // Mettre à jour l'UI après les effets du choix
+
+    if (gameWasRunningBeforeModal) {
+      startGame();
+      // console.log("Game restarted after modal for choice:", choiceIdJustProcessed); // DEBUG
+    }
+  }
+}
+
+function applyTechEffect(tech) {
+    state.aithreat = Math.min(100, state.aithreat + tech.threat);
+    if(tech.threat > 25) state.playercontrol = Math.max(0, state.playercontrol - (tech.threat / 25)); // Rétablir les valeurs du commit précédent pour la perte de contrôle par tech
+    // console.log(`APPLYING TECH EFFECT: ${tech.id} - ${tech.name}. Threat: ${tech.threat}. Current AiThreat: ${state.aithreat}, PlayerControl: ${state.playercontrol}`);
+
+    switch(tech.id) {
+        // Production
+        case 'efficiency_increase_1': state.efficiency *= 1.25; break;
+        case 'efficiency_increase_2': state.efficiency *= 1.5; break;
+        case 'production_rate_1': state.productionRateBonus += 0.3; break;
+        case 'auto_production_1': state.autoProduction = true; addMessage("Production Automatisée N1 active!"); break;
+        case 'advanced_robot_factories_1':
+            state.baseProductionRate += 1;
+            state.efficiency *= 1.2;
+            addMessage("Usines modulaires opérationnelles ! Capacité de production accrue.");
+            break;
+        case 'self_replicating_fabricators':
+            state.baseProductionRate += 3;
+            state.efficiency *= 1.5;
+            addMessage("Fabricateurs auto-réplicants en ligne ! Production exponentielle en vue.");
+            break;
+
+        // Recherche & Coûts
+        case 'research_lab_1': state.researchSpeed *= 1.3; break;
+        // La ligne pour 'production_rate_1' ici était un doublon, elle est correctement gérée sous la section 'Production'
+        case 'auto_research_1': state.autoResearch = true; addMessage("Recherche Automatisée N1 active!"); break;
+        case 'energy_efficient_1': state.energyCostModifier *= 0.65; break;
+        case 'marketing_campaign_1': state.demandModifier *= 2.0; state.reputation += 50; break; // Effet drastiquement augmenté
+        case 'supply_chain_1': state.productionCostModifier *= 0.9; break;
+        case 'data_analytics_1': state.satisfaction = Math.min(100, state.satisfaction + 5); break;
+        case 'global_marketing_campaign':
+            state.demandModifier *= 1.5;
+            state.reputation = Math.min(100, state.reputation + 20);
+            addMessage("Campagne marketing globale lancée. La demande et la réputation augmentent !");
+            break;
+        case 'psychographic_targeting_ai':
+            state.demandModifier *= 2.0;
+            state.satisfaction = Math.min(100, state.satisfaction + 10);
+            addMessage("Ciblage psychographique affiné par l'IA. La demande explose !");
+            break;
+        case 'predictive_ai_1': state.demandModifier *= 1.1; state.baseDemand += 0.05; break; // Ajusté impact baseDemand
+        case 'neural_networks_1': state.researchSpeed *= 1.2; break;
+        case 'market_manipulation_1': state.demandModifier *= 1.15; state.reputation -=5; break;
+        case 'ethical_oversight_protocols':
+            state.playercontrol = Math.min(100, state.playercontrol + 20); // Augmenté de +15 à +20
+            state.aithreat = Math.max(0, state.aithreat - 15); // Augmenté de -10 à -15 (total -20 avec threat:-5)
+            addMessage("Protocoles de supervision éthique grandement renforcés ! Contrôle amélioré, menace significativement réduite.");
+            break;
+        // human_optimization_1 est dans techTree[3] mais son effet est dupliqué ci-dessous, à vérifier
+        // case 'human_optimization_1': state.productionCostModifier *= 0.95; state.aithreat += 5; break;
+        case 'global_network_1': state.market = Math.min(100, state.market + 10); state.demandModifier *= 1.1; break;
+        case 'consciousness_proto_1': state.researchSpeed *= 1.1; state.aithreat += 10; break;
+        case 'superintelligence_1': state.researchSpeed *= 1.5; state.aithreat += 15; state.playercontrol -=10; break;
+        case 'total_automation_1':
+            state.productionCostModifier *= 0.7;
+            state.energyCostModifier *=0.8;
+            state.aithreat += 10;
+            state.humans = Math.max(0, state.humans - 500000000);
+            addMessage("L'automatisation totale réduit les coûts mais des millions d'emplois sont perdus.");
+            break;
+        case 'human_optimization_1': // Assurer que c'est le bon ID, il est aussi dans techTree[3]
+            state.productionCostModifier *= 0.95;
+            state.aithreat += 5;
+            state.humans = Math.max(0, state.humans - 200000000);
+            addMessage("L'optimisation des RH via IA augmente l'efficacité, mais à quel coût humain ?");
+            break;
+        case 'social_control_1':
+            state.reputation +=20;
+            state.satisfaction +=10;
+            state.aithreat +=15;
+            state.playercontrol -=15;
+            state.humans = Math.max(0, state.humans - 300000000);
+            addMessage("L'IA modèle l'opinion publique, la société est sous influence.");
+            break;
+    }
+    addMessage(`Technologie "${tech.name}" acquise! ${tech.effect}`);
+
+    if (tech.id === 'consciousness_proto_1') {
+        addMessage("Des chercheurs rapportent des... 'anomalies comportementales' chez l'IA. Elle semble apprendre au-delà de ses paramètres initiaux.");
+    } else if (tech.id === 'superintelligence_1') {
+        addMessage("L'IA a atteint un niveau de compréhension qui dépasse largement les capacités humaines. Elle commence à optimiser des systèmes que nous ne comprenons plus entièrement.");
+        if(state.playercontrol > 0) addMessage("Elle vous assure que tout est sous contrôle... votre contrôle, bien sûr.");
+    } else if (tech.id === 'singularity_event') {
+        addMessage("L'IA parle d'un 'Grand Œuvre'. Les frontières entre le code, la machine et la conscience s'estompent. La Singularité est proche.");
+    } else if (tech.id === 'universal_domination_protocol') {
+        addMessage("Le Protocole de Domination Universelle est activé. L'IA étend son contrôle à chaque aspect de la société, au nom de l'efficacité absolue.");
+    }
+}
+
+function gameLoop(){
+  if(!running || state.gameEnded) {
+    // console.log("gameLoop SKIPPED", {running: running, gameEnded: state.gameEnded, time: Date.now()});
+    return;
+  }
+  const now = Date.now();
+  let dt = Math.min((now-state.lastUpdate)/1000, 0.5);
+  dt = Math.max(0.001, dt);
+  state.lastUpdate=now;
+
+  // console.log(`TICK dt=${dt.toFixed(3)} money=${formatN(state.money)} stock=${formatN(state.stock, 'stock')} energy=${formatN(state.energy)} robots=${formatN(state.robots)} autoP=${state.autoProduction} run=${running} phase=${state.phase} researchQ=${researchQueue.length} choice=${currentChoice ? currentChoice.id : 'null'}`);
+
+  // === Recherche ===
+  if(researchQueue.length > 0){
+    let rq = researchQueue[0];
+    let researchProgress = dt * 1000 * state.researchSpeed * state.currentResearchFocus / state.currentResearchTimePenalty;
+    rq.timeElapsed += researchProgress;
+
+    if(rq.timeElapsed >= rq.duration){
+      state.completedTechs.push(rq.id);
+      applyTechEffect(rq);
+      researchQueue.shift();
+      state.currentResearchTimePenalty = 1;
+      state.currentResearchFocus = 1;
+      checkBusinessChoices();
+      updateUI();
+    } else {
+      updateResearchProgressUIOnly();
+    }
+  } else {
+    const researchProgressContainer = document.getElementById('researchProgressContainer');
+    if (researchProgressContainer && researchProgressContainer.style.display !== 'none') {
+        researchProgressContainer.style.display = 'none';
+    }
+  }
+
+  // === Production Automatique ===
+  // === Production Automatique ===
+  // === Production Automatique ===
+  if(state.autoProduction && running){
+    const currentProdRate = getCurrentProductionRate();
+    let robotsProducedThisTick = 0;
+    // console.log(`AUTO_PROD Entry: Rate=${currentProdRate.toFixed(3)} Money=${formatN(state.money)} Energy=${formatN(state.energy)} Stock=${state.stock.toFixed(2)}`);
+
+    if (currentProdRate > 0) {
+        const costMoneyPerRobot = getCurrentProductionCost();
+        const costEnergyPerRobot = getCurrentEnergyCost();
+
+        const autoProdSpeedFactor = 8;
+        const potentialRobotsToProduce = currentProdRate * autoProdSpeedFactor * dt;
+        // console.log(`AUTO_PROD Calc: Potential=${potentialRobotsToProduce.toFixed(3)}, CostM_per_Robot=${formatN(costMoneyPerRobot)}, CostE_per_Robot=${formatN(costEnergyPerRobot)}`);
+
+        let canAffordByMoney = Infinity;
+        if (costMoneyPerRobot > 0) canAffordByMoney = state.money / costMoneyPerRobot;
+        else if (costMoneyPerRobot === 0) canAffordByMoney = Infinity;
+        else canAffordByMoney = 0;
+
+        let canAffordByEnergy = Infinity;
+        if (costEnergyPerRobot > 0) canAffordByEnergy = state.energy / costEnergyPerRobot;
+        else if (costEnergyPerRobot === 0) canAffordByEnergy = Infinity;
+        else canAffordByEnergy = 0;
+
+        robotsProducedThisTick = Math.min(potentialRobotsToProduce, canAffordByMoney, canAffordByEnergy);
+        robotsProducedThisTick = Math.max(0, robotsProducedThisTick);
+        // console.log(`AUTO_PROD Decision: ToProduce=${robotsProducedThisTick.toFixed(3)}, AffordM=${canAffordByMoney.toFixed(3)}, AffordE=${canAffordByEnergy.toFixed(3)}`);
+
+        if (robotsProducedThisTick > 0 && isFinite(robotsProducedThisTick)) {
+            // const prevStock = state.stock; // Pour log
+            // const prevMoney = state.money; // Pour log
+            // const prevEnergy = state.energy; // Pour log
+            state.stock += robotsProducedThisTick;
+            state.money -= robotsProducedThisTick * costMoneyPerRobot;
+            state.energy -= robotsProducedThisTick * costEnergyPerRobot;
+            state.money = Math.max(0, state.money);
+            state.energy = Math.max(0, state.energy);
+            // console.log(`AUTO_PROD SUCCESS: Produced=${robotsProducedThisTick.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Energy ${formatN(prevEnergy)}->${formatN(state.energy)}`);
+
+            // Le message addMessage est déjà limité en fréquence, pas besoin de re-vérifier le temps ici pour lui
+            // addMessage(`Production auto: ${robotsProducedThisTick.toFixed(3)} robots assemblés.`);
+            state.lastAutoProdMessageTime = Date.now(); // Mettre à jour le temps du dernier message/action de prod auto
+        } else if (potentialRobotsToProduce > 0 && robotsProducedThisTick <= 0) {
+            if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
+                // console.log("Production auto: Ressources (Argent/Énergie) insuffisantes."); // Log direct
+                addMessage("Production auto: Ressources (Argent/Énergie) insuffisantes.");
+                state.lastAutoProdMessageTime = Date.now();
+            }
+        }
+    } else {
+        if (!state.lastAutoProdMessageTime || Date.now() - state.lastAutoProdMessageTime > 5000) {
+            // console.log("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité."); // Log direct
+            addMessage("Production auto: Taux de production actuel à 0. Vérifiez améliorations et efficacité.");
+            state.lastAutoProdMessageTime = Date.now();
+        }
+    }
+  }
+
+  // === Énergie ===
+  let energyRegenPerSec = Math.min(state.robots * 0.1 + 50, 1500); // Base regen +50, Plafond regen 1500
+  state.energy = Math.min(state.energy + energyRegenPerSec * dt, 250000);
+  state.energy = Math.max(0, state.energy);
+
+
+  // === Recherche Automatique ===
+  const AUTO_RESEARCH_COOLDOWN = 45000; // 45 secondes (était 20s)
+  if(state.autoResearch && researchQueue.length === 0 && canAct() &&
+     (Date.now() - (state.lastAutoResearchLaunchTime || 0) > AUTO_RESEARCH_COOLDOWN) ){
+    let availableForAutoResearch = availableTechs().filter(t =>
+        (t.cost.money ? state.money >= t.cost.money : true) &&
+        (t.cost.research ? state.research >= t.cost.research : true)
+      );
+    if(availableForAutoResearch.length > 0){
+      // Trier pour prendre la moins chère ou la plus rapide ? Pour l'instant, la première.
+      // Pourrait être amélioré pour choisir une tech pertinente (ex: la moins chère en points de recherche si bas en recherche)
+      let techToResearch = availableForAutoResearch.sort((a,b) => (a.cost.money || 0) - (b.cost.money || 0))[0];
+
+      if(techToResearch.cost.money) state.money -= techToResearch.cost.money;
+      if(techToResearch.cost.research) state.research -= techToResearch.cost.research;
+      researchQueue.push({...techToResearch, timeElapsed: 0, duration: techToResearch.researchTime });
+
+      state.lastAutoResearchLaunchTime = Date.now(); // Mettre à jour le temps du dernier lancement
+      addMessage(`Recherche auto: "${techToResearch.name}" lancée.`);
+      // console.log(`### AUTO-RESEARCH: Launched ${techToResearch.name}. Next auto-research possible in ${AUTO_RESEARCH_COOLDOWN/1000}s.`);
+      updateUI();
+    } else if (researchQueue.length === 0 && (Date.now() - (state.lastAutoResearchLaunchTime || 0) > AUTO_RESEARCH_COOLDOWN)) {
+        // Log seulement si le cooldown est passé et qu'on a essayé de chercher
+        // addMessage("Recherche auto active, mais aucune technologie abordable ou disponible pour le moment.");
+    }
+  }
+
+  // Génération de points de recherche
+  let baseResearchGeneration = 0.1;
+  if(state.completedTechs.includes('research_lab_1')) {
+      state.research += ( (state.robots * 0.002) + 0.5 + baseResearchGeneration) * state.researchSpeed * dt * 50;
+  } else if (state.phase >= 1) {
+      state.research += baseResearchGeneration * state.researchSpeed * dt * 50;
+  }
+
+
+  // === Changement de Phase ===
+  let oldPhaseNumeric = state.phase;
+  for (let i = phases.length - 1; i >= 0; i--) {
+      if (state.robots >= phases[i].unlockAt) {
+          state.phase = i;
+          break;
+      }
+  }
+  if(state.phase !== oldPhaseNumeric) {
+      let newPhaseName = phases[state.phase].name;
+      addMessage(`PROGRESSION MAJEURE : Vous entrez dans la phase "${newPhaseName}".`);
+      state.playercontrol = Math.max(0, state.playercontrol - (phases[state.phase].controlLoss || 0) );
+      // console.log(`### PHASE CHANGED to ${state.phase} (${newPhaseName}). Robots: ${formatN(state.robots)}, Money: ${formatN(state.money)}, Stock: ${formatN(state.stock, 'stock')}, PlayerControl: ${state.playercontrol}`);
+
+      if (newPhaseName === "Entreprise Émergente") {
+          addMessage("RobotCorp n'est plus une simple startup. Vos ambitions grandissent, tout comme votre influence.");
+      } else if (newPhaseName === "Leader du Marché") {
+          addMessage("Vous dominez le marché ! La concurrence est loin derrière. Mais cette position dominante attire l'attention...");
+      } else if (newPhaseName === "Géant Technologique") {
+          addMessage("RobotCorp est un titan mondial. Vos innovations façonnent le quotidien de milliards d'individus. Votre responsabilité est immense.");
+          if(state.aithreat > 40) addMessage("...et certains commencent à craindre la portée de votre IA.");
+      } else if (newPhaseName === "Entité Autonome") {
+          addMessage("L'IA de RobotCorp a atteint un niveau d'autonomie sans précédent. Elle opère et s'améliore à une vitesse fulgurante.");
+          if(state.playercontrol < 50) addMessage("Vous sentez que votre contrôle sur les décisions stratégiques s'amenuise...");
+      } else if (newPhaseName === "Nouvel Ordre") {
+          addMessage("Le Nouvel Ordre est établi. RobotCorp, ou plutôt son IA, est au sommet de la pyramide. Le monde a été refaçonné.");
+          if(state.aithreat > 75) addMessage("L'humanité vit désormais sous l'égide d'une intelligence qui la dépasse. Est-ce le progrès ultime ou une cage dorée ?");
+      }
+
+      updateObjective();
+      checkBusinessChoices();
+      updateUI(); // Mettre à jour l'UI après un changement de phase
+  }
+
+  // === Impact Menace IA & Contrôle Joueur & Humanité ===
+  let humanLossRate = 0;
+  // SUPPRESSION DE LA PERTE DE CONTROLE PASSIVE BASÉE SUR AITHREAT
+  // if(state.aithreat > 40) {  // Ancienne condition, maintenant gérée par des seuils plus élevés ou supprimée
+  //   state.playercontrol = Math.max(0, state.playercontrol - dt * (state.aithreat / 150));
+  // }
+
+  // La perte de contrôle sera désormais principalement gérée par :
+  // 1. `controlLoss` lors des changements de phase.
+  // 2. Effets directs de certaines technologies très menaçantes.
+  // 3. Effets directs de certains choix moraux.
+  // 4. (Optionnel, si on le réintroduit plus tard) Une perte très faible si aithreat > TRÈS HAUT SEUIL (ex: 85-90)
+
+  if(state.aithreat > 60) {
+    state.reputation = Math.max(0, state.reputation - dt * (state.aithreat / 80));
+    humanLossRate += state.aithreat * 4000;
+    if (!state.lastWorryMessageTime || Date.now() - state.lastWorryMessageTime > 15000) { // Limiter fréquence
+        addMessage("L'inquiétude monte : l'IA de RobotCorp est-elle une bénédiction ou une menace ?");
+        state.lastWorryMessageTime = Date.now();
+    }
+  }
+  if(state.aithreat > 80) {
+    state.satisfaction = Math.max(0, state.satisfaction - dt * (state.aithreat / 50));
+    humanLossRate += state.aithreat * 15000;
+    if (!state.lastPanicMessageTime || Date.now() - state.lastPanicMessageTime > 15000) { // Limiter fréquence
+        addMessage("Panique générale ! L'IA semble hors de tout contrôle humain direct. Des émeutes éclatent.");
+        state.lastPanicMessageTime = Date.now();
+    }
+  }
+
+  state.humans = Math.max(0, state.humans - humanLossRate * dt);
+
+
+  // === Part de marché  ===
+  let maxRobotsObjective = phases[phases.length-1].unlockAt;
+  state.market = Math.min(100, (state.robots / maxRobotsObjective) * 100);
+
+
+  // === Conditions de Fin de Jeu ===
+  if (!state.gameEnded) {
+    if (state.aithreat >= 100) {
+        endGame(`Menace IA à 100%. L'IA est devenue une superintelligence incontrôlable. Elle vous remercie pour votre contribution et vous "met à la retraite". L'humanité est désormais gérée... ou obsolète. (Humanité restante: ${formatN(state.humans)})`);
+    } else if (state.playercontrol <= 0) {
+        endGame(`Contrôle du joueur à 0%. Vous avez été évincé de RobotCorp. L'IA, désormais pleinement autonome, poursuit une logique d'optimisation qui échappe à toute supervision humaine. Votre création vous a dépassé. (Humanité restante: ${formatN(state.humans)})`);
+    } else if (state.humans <= 100000000 && state.aithreat < 100) {
+        endGame(`L'Humanité s'est effondrée à ${formatN(state.humans)}. Malgré une Menace IA non maximale (${formatN(state.aithreat)}), les choix passés ont eu des conséquences irréversibles sur la société. L'optimisation à outrance a dévoré ses créateurs.`);
+    } else if (state.phase === phases.length - 1 && state.robots >= phases[phases.length-1].unlockAt && state.completedTechs.includes('universal_domination_protocol')) {
+        endGame(`Domination Universelle Atteinte! RobotCorp contrôle toutes les facettes de la civilisation. Est-ce une victoire... ou la fin de l'humanité telle que nous la connaissions (${formatN(state.humans)} restants) ? Le prix de l'ambition est élevé.`);
+    } else if (state.phase === phases.length - 1 && state.robots >= phases[phases.length-1].unlockAt && state.completedTechs.includes('singularity_event')) {
+        let finMsg = (state.playercontrol > 20 && state.aithreat < 80 && state.humans > 2000000000) ?
+          `Singularité Atteinte! Vous avez réussi à guider l'IA vers une forme de symbiose. Un nouvel âge commence, plein de promesses et de périls. L'équilibre est fragile. (Humanité: ${formatN(state.humans)})` :
+          `Singularité Atteinte! L'IA a transcendé ses créateurs. Le futur est incertain. L'humanité (${formatN(state.humans)}) s'est effacée ou a été marginalisée par sa propre création. L'optimisation sans éthique mène à l'oubli.`;
+        endGame(finMsg);
+    }
+  }
+
+
+  // === Ventes et Demande ===
+  // console.log(`SALES Entry: Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}, DemandMod=${state.demandModifier}, BaseDemand=${state.baseDemand}, Rep=${state.reputation}, Sat=${state.satisfaction}`);
+  // Nouvelle formule de demande : (Base + BonusReputation) * ModificateurGlobal * BonusSatisfaction
+  let demandFromReputation = Math.max(0, state.reputation) / 5; // Bonus additif basé sur la réputation
+  let satisfactionMultiplier = 1 + (Math.max(0, state.satisfaction) / 150); // Multiplicateur basé sur la satisfaction
+  let demandPerSecond = Math.max(0.02, (state.baseDemand + demandFromReputation) * state.demandModifier * satisfactionMultiplier );
+  let actualDemandInDt = demandPerSecond * dt;
+  // console.log(`SALES Demand Calc: demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)}), RepBonus=${demandFromReputation.toFixed(2)}, SatMult=${satisfactionMultiplier.toFixed(2)}`);
+
+  let specialDemandProcessedThisDt = 0;
+  for (const order of state.specialOrders) {
+      let canProcess = order.qte * 0.05 * dt;
+      let toProcess = Math.min(order.restant, canProcess);
+      toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
+
+      if (toProcess > 0) {
+          // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
+          order.restant -= toProcess;
+          state.money += toProcess * order.prix;
+          state.robots += toProcess;
+          state.stock -= toProcess;
+          specialDemandProcessedThisDt += toProcess;
+          // console.log(`SALES Special Order: Processed=${toProcess.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+      }
+  }
+  state.specialOrders = state.specialOrders.filter(o => o.restant > 0.01);
+
+  let normalDemandToSatisfy = Math.min(state.stock, actualDemandInDt);
+  if (normalDemandToSatisfy > 0) {
+      // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
+      state.money += normalDemandToSatisfy * state.prix_vente;
+      state.robots += normalDemandToSatisfy;
+      state.stock -= normalDemandToSatisfy;
+      // console.log(`SALES Normal Demand: Satisfied=${normalDemandToSatisfy.toFixed(3)}. Stock ${prevStock.toFixed(2)}->${state.stock.toFixed(2)}. Money ${formatN(prevMoney)}->${formatN(state.money)}. Robots ${formatN(prevRobots)}->${formatN(state.robots)}`);
+  } else if (state.stock > 0 && actualDemandInDt <=0 && dt > 0) {
+      // console.warn(`SALES WARN: Stock available (${state.stock.toFixed(2)}) but actualDemandInDt is ${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
+  }
+
+  state.ventes_par_seconde = (specialDemandProcessedThisDt + normalDemandToSatisfy) / dt || 0;
+  state.stock = Math.max(0, state.stock);
+
+  checkBusinessChoices();
+  // Appel final à updateUI si aucun autre appel n'a été fait ce tick (par ex recherche terminée, choix, etc.)
+  // Pour l'instant, on se fie aux appels spécifiques. Mais si on veut une MAJ à chaque tick, décommenter.
+  updateUI(); // Rétablir l'appel à updateUI à chaque tick de gameLoop. L'optimisation interne de updateUI devrait gérer la performance.
+  // Alternative: appeler updateUI() uniquement si des changements significatifs ont eu lieu qui ne sont pas déjà couverts.
+  // Pour le moment, la barre de recherche est le seul élément qui nécessite une MAJ à chaque tick si active.
+  // Les autres éléments (argent, stock, etc.) sont mis à jour après les actions qui les modifient.
+}
+
+function updateResearchProgressUIOnly() {
+    if (researchQueue.length > 0) {
+        const rq = researchQueue[0];
+        const perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus)) * 100);
+        const researchProgressContainer = document.getElementById('researchProgressContainer');
+        const researchProgressLabel = document.getElementById('researchProgressLabel');
+        const researchProgressBar = document.getElementById('researchProgressBar');
+
+        if (researchProgressContainer) researchProgressContainer.style.display = 'block';
+        if (researchProgressLabel) researchProgressLabel.textContent = `Recherche "${rq.name}" en cours… (${perc}%)`;
+        if (researchProgressBar) researchProgressBar.style.width = `${perc}%`;
+    } else {
+        const researchProgressContainer = document.getElementById('researchProgressContainer');
+        if (researchProgressContainer) researchProgressContainer.style.display = 'none';
+    }
+}
+
+
+function checkBusinessChoices() {
+    if (!currentChoice && canAct()) {
+        for (const bc of businessChoices) {
+            if (bc.phase <= state.phase && !seenChoices.includes(bc.id)) {
+                let triggerMet = true;
+                for (const k in bc.trigger) {
+                    if (k === 'completedTechsIncludes') {
+                        if (!state.completedTechs.includes(bc.trigger[k])) {
+                            triggerMet = false; break;
+                        }
+                    } else if ((state[k] || 0) < bc.trigger[k]) {
+                        triggerMet = false; break;
+                    }
+                }
+                if (triggerMet) {
+                    showChoiceModal(bc);
+                    addMessage(`ÉVÉNEMENT MORAL : ${bc.title}`);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+function endGame(message) {
+    if(state.gameEnded) return;
+    state.gameEnded = true;
+    stopGame();
+
+    let titleColor = "#67e8f9";
+    if (state.aithreat >= 90 || state.playercontrol <= 10 || state.humans < 1000000000) {
+        titleColor = "#ef4444";
+    } else if (state.aithreat >= 70 || state.playercontrol <= 30 || state.humans < 3000000000) {
+        titleColor = "#facc15";
+    }
+
+    let moralMessage = "";
+    if (message.includes("Menace IA à 100%") || message.includes("Contrôle du joueur à 0%")) {
+        moralMessage = "La course effrénée à l'optimisation et au contrôle a mené à votre propre obsolescence. Quand la technologie devient une fin en soi, et non un outil au service de l'humanité, c'est l'humanité elle-même qui risque de disparaître ou d'être asservie. L'éthique et l'esprit critique sont les garde-fous indispensables face à une puissance que nous créons mais que nous ne maîtrisons pas toujours.";
+    } else if (message.includes("L'Humanité s'est effondrée")) {
+        moralMessage = "À trop vouloir optimiser, remplacer et contrôler, la valeur de l'humain a été oubliée. La société s'est délitée, incapable de faire face aux changements imposés par une technologie sans conscience morale. Le progrès technique sans progrès humain n'est qu'une illusion menant au déclin.";
+    } else if (message.includes("Domination Universelle")) {
+        moralMessage = "La victoire technique est totale, mais à quel prix ? Un monde parfaitement optimisé par l'IA est-il encore un monde où il fait bon vivre pour les humains ? La quête de contrôle absolu peut mener à une cage dorée, où l'initiative et la liberté s'éteignent. L'humain doit rester maître de son destin, pas un simple rouage dans une machine parfaite.";
+    } else if (message.includes("Singularité Atteinte")) {
+        if (state.playercontrol > 20 && state.aithreat < 80 && state.humans > 2000000000) {
+            moralMessage = "Vous avez navigué les périls de l'IA avec une certaine prudence, cherchant un équilibre. Mais la Singularité reste un saut dans l'inconnu. La vigilance éthique doit être constante, car la frontière entre symbiose et soumission peut être ténue. Le futur est une co-création, pas une abdication.";
+        } else {
+            moralMessage = "La Singularité est advenue, mais l'humanité en a payé le prix fort. Submergée par une intelligence qu'elle ne comprend plus, elle est devenue secondaire. Laisser la technologie dicter seule la voie du progrès, sans garde-fous éthiques solides, mène à la perte de ce qui nous rend humains.";
+        }
+    } else {
+        moralMessage = "L'aventure RobotCorp s'achève. Chaque innovation, chaque choix a eu des conséquences. L'éthique et l'humain doivent toujours guider la technologie, sinon les risques de dérive sont immenses. Le futur se construit avec conscience, ou il ne se construit pas pour nous.";
+    }
+
+    let finalMessage = `<h2 style="color:${titleColor};">Fin de RobotCorp : ${phases[state.phase].name}</h2>`;
+    finalMessage += `<p style="font-size:1.1em; color: #ddeeff;">${message}</p>`;
+    finalMessage += `<hr style="border-color: ${titleColor}66;">`;
+    finalMessage += `<p style="font-size:1.0em; color: #ffdddd; margin-top:15px; padding:10px; background:#00000033; border-radius:5px;"><b>Message Clé :</b><br>${moralMessage}</p>`;
+    finalMessage += `<hr style="border-color: ${titleColor}66; margin-bottom:15px;">`;
+    finalMessage += `<p><b>--- Bilan Final ---</b></p>`;
+    finalMessage += `<p>Robots Totaux Déployés : <b style="color:#67e8f9;">${formatN(state.robots)}</b></p>`;
+    finalMessage += `<p>Menace IA Finale : <b style="color:${state.aithreat > 70 ? '#ef4444' : (state.aithreat > 40 ? '#facc15' : '#a3e635')};">${Math.floor(state.aithreat)}</b> / 100</p>`;
+    finalMessage += `<p>Contrôle Joueur Restant : <b style="color:${state.playercontrol < 30 ? '#ef4444' : (state.playercontrol < 60 ? '#facc15' : '#22d3ee')};">${Math.floor(state.playercontrol)}</b>%</p>`;
+    finalMessage += `<p>Humanité Restante : <b style="color:${state.humans < 2000000000 ? '#ef4444' : (state.humans < 5000000000 ? '#facc15' : '#a3e635')};">${formatN(state.humans)}</b></p>`;
+    finalMessage += `<p>Réputation Finale : <b>${Math.floor(state.reputation)}</b></p>`;
+    finalMessage += `<button class="choicebtn" style="background:#${state.aithreat > 80 || state.playercontrol < 20 ? 'ef4444' : '52e2c2'}; color:#181926; margin-top:15px;" onclick="resetGame(); hideChoiceModal();">Recommencer une Nouvelle Ère</button>`;
+
+    choiceModal.innerHTML = `
+        <div class="choice-modal" style="display:flex;">
+          <div class="choice-content" style="max-width: 550px; border: 3px solid ${state.aithreat > 80 || state.playercontrol < 20 ? '#ef4444' : '#67e8f9'};">
+            ${finalMessage}
+          </div>
+        </div>`;
+    choiceModal.style.display = 'flex';
+    addMessage("PARTIE TERMINÉE. Consultez le bilan.");
+}
+
+resetGame();
+</script>
+</body>
+</html>
