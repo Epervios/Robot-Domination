@@ -97,7 +97,11 @@
         </div>
       </div>
       <div class="card">
-        <b>Recherche & Innovations</b><br><br>
+        <b>Recherche & Innovations</b>
+        <div id="researchProgressContainer" class="research-current" style="display:none" aria-live="off">
+          <div id="researchProgressLabel" class="research-label"></div>
+          <div class="research-progressbar"><div id="researchProgressBar" class="research-progress" style="width:0"></div></div>
+        </div>
         <div id="techtree"></div>
         <div id="autoResearchDisplay" class="auto" style="display:none; margin-top:8px;">✓ Recherche automatique</div>
         <div style="font-size:0.90em;margin-top:10px;color:#ccc;">Techs acquises : <span id="completedtechs">aucune</span></div>
@@ -328,6 +332,8 @@ function resetGame(){
   running = false; seenChoices=[]; currentChoice=null; researchQueue=[];
 
   // Réinitialiser les variables de suivi pour updateUI
+  lastTechSignature = '';
+  showAllTechs = false;
   lastPhase = -1;
   lastMoneyForTechCheck = -1;
   lastResearchForTechCheck = -1;
@@ -416,6 +422,55 @@ function updateObjective(){
     objective.textContent = "Domination Totale : Maintenir le Nouvel Ordre Mondial IA.";
 }
 
+
+let lastTechSignature = "";
+let showAllTechs = false;
+let renderedTechs = new Map();
+function refreshResearchCards() {
+  const pending = researchQueue.map(q=>q.id).join(",");
+  const signature = state.phase+"|"+state.completedTechs.join(",")+"|"+pending+"|"+showAllTechs;
+  if (signature !== lastTechSignature) {
+    const ranked = availableTechs().map(tech=>({
+      tech,phase:Number(Object.keys(techTree).find(p=>techTree[p].includes(tech)))
+    })).sort((a,b)=>b.phase-a.phase ||
+      (a.tech.cost.money||0)-(b.tech.cost.money||0) ||
+      a.tech.name.localeCompare(b.tech.name,"fr"));
+    const selection = showAllTechs ? ranked : ranked.slice(0,4);
+    renderedTechs = new Map(selection.map(entry=>[entry.tech.id,entry.tech]));
+    let markup = selection.map(entry=>{
+      const tech=entry.tech;
+      const moneyCost=tech.cost.money?formatN(tech.cost.money)+" $":"";
+      const scienceCost=tech.cost.research?formatN(tech.cost.research)+" 🧠":"";
+      const cost=[moneyCost,scienceCost].filter(Boolean).join(" + ");
+      const danger=tech.threat>0?"+"+tech.threat+" menace":tech.threat<0?tech.threat+" menace":"Aucune menace";
+      const canBuy=(!tech.cost.money||state.money>=tech.cost.money) &&
+        (!tech.cost.research||state.research>=tech.cost.research) && canAct();
+      return '<button type="button" class="techbtn tech-tile" data-tid="'+tech.id+'"'+(canBuy?'':' disabled')+
+        ' title="'+tech.desc+'"><span class="tech-tile-head"><strong>'+tech.name+
+        '</strong><small>'+danger+'</small></span><span class="tech-tile-effect">'+tech.effect+
+        '</span><span class="tech-tile-cost">'+cost+' · '+Math.ceil(tech.researchTime/1000)+' s</span></button>';
+    }).join("");
+    if (ranked.length>4) {
+      markup += '<button type="button" id="btnShowAllTechs" class="tech-expand">'+
+        (showAllTechs?"Réduire la sélection":"Voir toutes les technologies ("+ranked.length+")")+"</button>";
+    }
+    techtree.innerHTML=markup||'<p class="tech-empty">Toutes les technologies de cette phase sont acquises.</p>';
+    lastTechSignature=signature;
+  }
+  // Ne jamais remplacer les boutons lors d'une modification des ressources.
+  if(typeof techtree.querySelectorAll==="function") {
+    for(const btn of techtree.querySelectorAll(".techbtn")) {
+      const tech=renderedTechs.get(btn.dataset.tid);
+      if(!tech)continue;
+      const canBuy=(!tech.cost.money||state.money>=tech.cost.money) &&
+        (!tech.cost.research||state.research>=tech.cost.research) && canAct();
+      if(btn.disabled===canBuy)btn.disabled=!canBuy;
+      btn.setAttribute("aria-label",tech.name+(canBuy?" — lancer la recherche":" — ressources insuffisantes"));
+    }
+  }
+  updateResearchProgressUIOnly();
+}
+
 function updateUI(){
   robots.textContent = formatN(state.robots);
   money.textContent = formatN(state.money);
@@ -461,92 +516,7 @@ function updateUI(){
     ? state.specialOrders.map(o=>`${o.qte} (${formatN(o.restant)} restants)`).join(", ")
     : "Aucune";
 
-  // Optimisation: reconstruire techtree.innerHTML seulement si nécessaire
-  const currentCanAct = canAct();
-  // Augmentation des pas de discrétisation pour réduire la fréquence des MAJ du techtree
-  const currentMoneyDiscrete = Math.floor(state.money / 5000);
-  const currentResearchDiscrete = Math.floor(state.research / 250); // Augmenté aussi, mais moins car les coûts en recherche sont plus petits
-
-  let needsTechTreeUpdate = false;
-  let updateReason = ""; // Pour stocker la raison de la mise à jour
-
-  if (state.phase !== lastPhase) {
-    needsTechTreeUpdate = true;
-    updateReason += "phaseChanged ";
-  }
-  if (currentMoneyDiscrete !== lastMoneyForTechCheck) {
-    needsTechTreeUpdate = true;
-    updateReason += `moneyChanged(${lastMoneyForTechCheck}->${currentMoneyDiscrete}) `;
-  }
-  if (currentResearchDiscrete !== lastResearchForTechCheck) {
-    needsTechTreeUpdate = true;
-    updateReason += `researchChanged(${lastResearchForTechCheck}->${currentResearchDiscrete}) `;
-  }
-  if (state.completedTechs.length !== lastCompletedTechsCount) {
-    needsTechTreeUpdate = true;
-    updateReason += `completedTechsChanged(${lastCompletedTechsCount}->${state.completedTechs.length}) `;
-  }
-  if (researchQueue.length !== lastResearchQueueLength) {
-    needsTechTreeUpdate = true;
-    updateReason += `researchQueueChanged(${lastResearchQueueLength}->${researchQueue.length}) `;
-  }
-  if (currentCanAct !== lastCanActState) {
-    needsTechTreeUpdate = true;
-    updateReason += `canActChanged(${lastCanActState}->${currentCanAct}) `;
-  }
-
-  if (needsTechTreeUpdate) {
-    // console.log(`UPDATEUI: Rebuilding Tech Tree Display. Reason: ${updateReason}`); // DEBUG - Commenté pour version finale
-    let techtxt = '';
-    const techsToShow = availableTechs();
-    for(const tech of techsToShow){
-      let costString = "";
-      if (tech.cost.money) costString += formatN(tech.cost.money)+"$";
-      if (tech.cost.research) costString += (costString ? " + " : "") + "🧠 "+formatN(tech.cost.research);
-
-      const dis = (tech.cost.money && state.money<tech.cost.money) ||
-                  (tech.cost.research && state.research<tech.cost.research) ||
-                  !currentCanAct || // Utiliser la variable déjà calculée
-                  state.completedTechs.includes(tech.id) ||
-                  researchQueue.some(q => q.id === tech.id);
-
-      let btnClass = "techbtn";
-      if (state.completedTechsByIA.includes(tech.id)) {
-        btnClass += " completed-by-ia";
-      }
-
-      techtxt+=`<button class="${btnClass}" ${dis?"disabled":""} data-tid="${tech.id}">
-        <b>${tech.name}</b> <span style="float:right;">+${tech.threat}⚠️</span><br>
-        <span style="font-size:0.9em;">${tech.desc}</span><br>
-        <span style="font-size:0.9em; color:#ddd;">Effet: ${tech.effect}</span><br>
-        <span style="font-size:0.93em;">Coût: ${costString}</span>
-      </button>`;
-    }
-
-    // Barre de progression de recherche
-    if (researchQueue.length > 0) {
-        let rq = researchQueue[0];
-        let perc = Math.floor((rq.timeElapsed / (rq.duration * state.currentResearchTimePenalty / state.currentResearchFocus))*100);
-        let progressBarClass = rq.byIA ? "research-progress-ia" : "research-progress";
-        techtxt += `
-          <div id="researchProgressContainer">
-            <div id="researchProgressLabel" class="research-label">Recherche "${rq.name}" en cours ${rq.byIA ? "(par IA)" : ""}… (${perc}%)</div>
-            <div class="research-progressbar">
-              <div id="researchProgressBar" class="${progressBarClass}" style="width:${perc}%"></div>
-            </div>
-          </div>`;
-    } else {
-        techtxt += `<div id="researchProgressContainer" style="display:none;"><div id="researchProgressLabel" class="research-label"></div><div class="research-progressbar"><div id="researchProgressBar" class="research-progress" style="width:0%"></div></div></div>`;
-    }
-    techtree.innerHTML = techtxt || '<span style="color:#aaa;">Aucune technologie disponible pour cette phase ou ressources insuffisantes.</span>';
-
-    lastPhase = state.phase;
-    lastMoneyForTechCheck = currentMoneyDiscrete;
-    lastResearchForTechCheck = currentResearchDiscrete;
-    lastCompletedTechsCount = state.completedTechs.length;
-    lastResearchQueueLength = researchQueue.length;
-    lastCanActState = currentCanAct;
-  }
+  refreshResearchCards();
 
   let completedTechNames = state.completedTechs.map(id => {
     for (const phaseKey in techTree) {
@@ -555,7 +525,8 @@ function updateUI(){
     }
     return id;
   }).join(", ");
-  completedtechs.textContent = state.completedTechs.length === 0 ? "aucune" : completedTechNames;
+  completedtechs.textContent = state.completedTechs.length === 0 ? "aucune" : state.completedTechs.length+" technologies";
+  completedtechs.title = completedTechNames;
 
   const autoResearchDisplay = document.getElementById('autoResearchDisplay');
   if (autoResearchDisplay) autoResearchDisplay.style.display = state.autoResearch ? "block" : "none";
@@ -589,6 +560,12 @@ function hideChoiceModal(){
 }
 
 techtree.onclick = function(e) {
+  if (e.target && e.target.closest && e.target.closest("#btnShowAllTechs")) {
+    showAllTechs = !showAllTechs;
+    lastTechSignature = "";
+    updateUI();
+    return;
+  }
   let el = e.target;
   while (el && !el.classList.contains('techbtn')) el = el.parentElement;
   if (!el) return;
