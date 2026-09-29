@@ -70,7 +70,7 @@ function materialQuote(s,type="standard"){
 function orderMaterials(s,type="standard"){
  const q=materialQuote(s,type);
  if(!q||s.supply||s.scene||s.ended||s.credits<q.cost||(q.requires&&!s.techs.includes(q.requires)))return false;
- s.credits-=q.cost;s.supply={type,remaining:q.duration,count:q.count};
+ s.credits-=q.cost;s.supply={type,remaining:q.duration,total:q.duration,count:q.count};
  note(s,"LOGISTIQUE — "+q.count+" composants commandés, livraison dans "+Math.ceil(q.duration)+" s.","contract");
  return true;
 }
