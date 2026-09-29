@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - prototype/robot-domination-v4-odyssey
+      - main
   pull_request:
     branches:
       - prototype/robot-domination-v3
+      - main
   workflow_dispatch:
 permissions:
   contents: read
