@@ -792,5 +792,5 @@ els.btnLaunchResume.hidden=els.btnLoad.disabled;
 activate("atelier",false);
 render(true);
 requestAnimationFrame(draw);
-window.RobotDominationV3={getState:()=>s,engine:E,render,activate,save,load};
+window.RobotDominationV4={getState:()=>s,engine:E,render,activate,save,load};
 })();
