@@ -67,7 +67,7 @@ try{
  assert.equal(await page.evaluate(()=>window.RobotDominationV4.getState().supply?.type),"standard");
  assert.ok(await page.evaluate(()=>window.RobotDominationV4.getState().credits)<beforeCost);
  assert.equal(await page.locator("#supplyProgress").isVisible(),true);
- const cards=await page.locator("[data-region]").count();
+ const cards=await page.locator(".region-options [data-region]").count();
  assert.equal(cards,3);
  await page.screenshot({path:path.join(out,"v4-desktop-management.png"),animations:"disabled"});
  console.log("PASS GESTION : achat de composants, convoi différé, suivi et trois marchés.");
