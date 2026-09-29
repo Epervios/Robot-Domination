@@ -9,7 +9,7 @@ const els=Object.fromEntries([
 "energyRegen","stockLine","researchLine","threatFill","trustFill",
 "headStatus","btnAudio","btnSave","btnLoad","btnPause",
 "missionAct","missionTitle","missionDetail","missionFill","missionCount",
-"storySteps","fieldLog","operationLabel","marketBadge","timeBadge",
+"storySteps","fieldLog","operationLabel","marketBadge","timeBadge","seasonLabel","regionBadge","materialsBadge",
 "factory","canvasWrap","canvasCaption","crisisHud","crisisClock","crisisTitle",
 "crisisHint","crisisProgress","queueLine","beltFill","stageStock","stageRate","stageDemand",
 "buildOne","buildThree","buildCost","buildHint","modeLabel","modeSwitch",
@@ -18,22 +18,28 @@ const els=Object.fromEntries([
 "contractDescription","contractUnits","contractDeadline","contractProgress",
 "contractFill","btnAccept","btnReject","intelText","opsFeed","toast",
 "launchScreen","btnLaunch","btnLaunchResume","storyOverlay","storyAct","storyHeading","storyDescription",
-"storyChoice0","storyChoice1","endOverlay","endingHeading","endingDescription",
-"endingStats","btnRestart","signalCount","signalClue","signalMarker","signalPrecision","signalCooldown","btnScan"].map(id=>[id,$(id)]));
+"storyChoice0","storyChoice1","storyChoice2","storyPlace","storySeason","storySpeaker","storyDialogue","storyStakes","storyButtons","storyConsequence","storyResult","storyContinue","storyDisclaimer","endOverlay","endingHeading","endingDescription",
+"endingStats","btnRestart","signalCount","signalClue","signalMarker","signalPrecision","signalCooldown","btnScan",
+"resourceMaterials","supplyStatus","supplyProgress","supplyFill","supplyInfo",
+"supplyStandard","supplyExpress","supplyRecycled","payrollAmount","payrollTimer",
+"crewLabel","wearValue","wearFill","moraleValue","moraleFill","btnMaintain","btnHire",
+"factionCrew","factionPublic","factionNora","factionCrewFill","factionPublicFill","factionNoraFill"].map(id=>[id,$(id)]));
 for(const [id,node]of Object.entries(els))if(!node)throw new Error("Élément manquant : "+id);
 const $all=selector=>[...document.querySelectorAll(selector)];
 const repairButtons=$all("[data-repair]");
 const modeButtons=$all("[data-mode]");
+const supplyButtons=$all("[data-supply]");
+const regionButtons=$all("[data-region]");
 const tabs=$all("[data-panel]");
 const pages=$all(".command-page");
 const techNodes=new Map(),storyDots=$all(".story-step");
 const logNodes=[...els.fieldLog.children];
 const MONEY=new Intl.NumberFormat("fr-CH",{maximumFractionDigits:0});
 const fmt=value=>MONEY.format(Math.floor(value));
-const SAVE="robot-domination-v3-save-1";
+const SAVE="robot-domination-v4-odyssey-save-1";
 let s=E.create();
 let lastUi=0,lastSim=performance.now(),lastLogKey="",activePanel="atelier",toastHandle=0;
-let sceneVisible="",endVisible=false,reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+let sceneVisible="",endVisible=false,consequenceActive=false,reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
 let audio=null,particles=[],animationTime=0,prevFrame=performance.now(),lastFpsDraw=0;
 const canvas=els.factory,ctx=canvas.getContext("2d");
 if(!ctx)throw new Error("Votre navigateur ne prend pas en charge Canvas 2D.");
@@ -80,7 +86,7 @@ function load(){
  render(true);
 }
 function resetUi(){
- sceneVisible="";endVisible=false;lastLogKey="";
+ sceneVisible="";endVisible=false;consequenceActive=false;lastLogKey="";
  els.storyOverlay.hidden=true;els.endOverlay.hidden=true;
  particles=[];lastSim=performance.now();
  activate("atelier",false);
@@ -132,6 +138,9 @@ function handleEvents(events){
   if(ev.type==="market"){toast("MARCHÉ : "+marketName(s.market));}
   if(ev.type==="contract"){toast(ev.won?"Contrat rempli ! Bonus de données et de confiance.":"Contrat expiré : réputation pénalisée.",!ev.won);ping(ev.won?880:160,.18);}
   if(ev.type==="tech"){flash("tech",2);toast("R&D : "+E.TECHS.find(t=>t.id===ev.id).name+" déverrouillée.");ping(950,.2);}
+   if(ev.type==="supply"){flash("build",2);toast("Approvisionnement livré : "+ev.count+" composants.");}
+   if(ev.type==="breakdown"){flash("danger",3);toast("PANNE : l'usine a subi une usure excessive.",true);}
+   if(ev.type==="payrollFailed"){toast("ALERTE SOCIALE : fonds insuffisants pour la paie !",true);}
   if(ev.type==="ending")showEnding();
  }
 }
@@ -252,32 +261,39 @@ function render(force=false){
    s.ended?"SIMULATION TERMINÉE":s.running?"USINE EN SERVICE":"SIMULATION EN PAUSE");
  setText(els.btnPause,s.running?"Ⅱ PAUSE":s.scene?"◆ DÉCIDER":s.ended?"■ FIN":"▶ DÉMARRER");
  els.btnPause.disabled=!!s.scene||s.ended;
- const mission=E.mission(s),step=Math.min(s.storyIndex+1,4);
+ const mission=E.mission(s),step=Math.min(s.storyIndex+1,12);
+ setText(els.seasonLabel,mission.season||"ÉPILOGUE");
  setText(els.missionAct,String(step).padStart(2,"0"));
  setText(els.missionTitle,mission.title);
  setText(els.missionDetail,mission.detail);
  setText(els.missionCount,Math.min(s.sold,mission.target)+" / "+mission.target+" LIVRÉS");
  setWidth(els.missionFill,mission.percent*100);
- storyDots.forEach((item,i)=>{item.classList.toggle("is-current",i===s.storyIndex);
- item.classList.toggle("is-done",i<s.storyIndex);});
+ storyDots.forEach((item,i)=>{
+  item.classList.toggle("is-current",i===s.storyIndex);
+  item.classList.toggle("is-done",i<s.storyIndex);
+  item.hidden=i<s.storyIndex-2||i>s.storyIndex+3;
+ });
  setText(els.operationLabel,s.crisis?"DÉFAILLANCE":s.outage>0?"LIGNE COUPÉE":s.running?"PRODUCTION ACTIVE":"EN VEILLE");
  setText(els.marketBadge,"MARCHÉ "+marketName(s.market));
+ setText(els.regionBadge,E.currentRegion(s).title);
+ setText(els.materialsBadge,s.materials+" ◆");
  const mins=Math.floor(s.time/60),secs=Math.floor(s.time%60);
  setText(els.timeBadge,"T+ "+String(mins).padStart(2,"0")+":"+String(secs).padStart(2,"0"));
- setText(els.queueLine,s.queued+" / 12 EN FILE");
+ setText(els.queueLine,s.queued+" / "+E.maxQueue(s)+" EN FILE");
  setWidth(els.beltFill,s.assembly*100);
  setText(els.stageStock,String(s.stock).padStart(2,"0"));
  setText(els.stageRate,(E.policy(s).rate*s.productionRate).toFixed(1)+"×");
  setText(els.stageDemand,E.demand(s).toFixed(2).replace(".",",")+"/s");
  setText(els.buildCost,fmt(E.buildCost(s))+" ¤ / "+E.buildEnergy(s)+" ⚡");
- setText(els.buildHint,"File d'assemblage : "+s.queued+" / 12");
+ setText(els.buildHint,"File : "+s.queued+"/"+E.maxQueue(s)+" • Composants : "+s.materials+" • Usure : "+Math.round(s.wear)+" %");
  setText(els.modeLabel,{normal:"STANDARD",rush:"SURCADENCE",safe:"SÉCURISÉ"}[s.mode]);
  for(const btn of modeButtons){const selected=btn.dataset.mode===s.mode;btn.classList.toggle("is-selected",selected);btn.setAttribute("aria-pressed",String(selected));}
  const gridPrice=s.regen<=6?68000:s.regen<=13?175000:430000;
  setText(els.gridCost,s.regen>=37?"Réseau au maximum": "Prochain palier : "+fmt(gridPrice)+" ¤");
  setText(els.gridTitle,"RÉSEAU : "+s.regen+" ÉNERGIE/S");
  els.buildGrid.disabled=s.regen>=37||s.credits<gridPrice||s.ended||!!s.scene;
- els.btnBailout.hidden=!!(s.bailoutUsed||s.stock||s.queued||s.credits>=E.buildCost(s));
+ els.btnBailout.hidden=!!(s.bailoutCount>=2||s.stock||s.queued||
+ (s.credits>=Math.max(E.buildCost(s),E.materialQuote(s).cost)&&s.materials>0));
  setText(els.canvasCaption,s.crisis?"SÉQUENCE DE RELAIS EN COURS":
   s.outage>0?"REMISE EN SERVICE : "+Math.ceil(s.outage)+" S":
   s.running?"TOUCHER L'ATELIER POUR COMMANDER UN ROBOT":"USINE EN VEILLE");
@@ -286,12 +302,13 @@ function render(force=false){
   setText(els.crisisClock,Math.ceil(s.crisis.remaining)+" S");
   setText(els.crisisTitle,s.crisis.title);
   setText(els.crisisHint,s.crisis.hint);
-  setText(els.crisisProgress,s.crisis.step+" / 3 RÉARMÉS");
+  setText(els.crisisProgress,s.crisis.step+" / "+s.crisis.order.length+" RÉARMÉS");
   repairButtons.forEach((b,index)=>b.classList.toggle("is-done",s.crisis.order.indexOf(index)<s.crisis.step));
  }
  renderTech();
  renderContract();
  renderSignal();
+ renderManagement();
  setText(els.intelText,intel());
  const key=s.history.length+"|"+(s.history[0]?.text||"");
  if(force||key!==lastLogKey){
