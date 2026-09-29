@@ -341,3 +341,11 @@ html,body { overflow-x:clip; }
 @media(prefers-reduced-motion:reduce) {
   .cockpit-tabs *, .mode-options *, #techtree *, .contract-progress * { transition:none!important; }
 }
+
+/* Réseau électrique industriel : enjeu de capacité et non ressource gratuite. */
+.grid-energy-upgrade { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  margin:8px 0 0;padding:7px 8px;border:1px solid #466a5f;border-radius:7px;background:#142d35;gap:3px 8px; }
+.grid-energy-upgrade span { width:100%;font:.61rem ui-monospace,monospace;letter-spacing:.1em;color:#b9d6ca; }
+.grid-energy-upgrade b { font-size:.73rem;color:#e2f6ed; }
+.container .grid-energy-upgrade .actionbtn { width:100%;margin:4px 0 0; }
+.container .grid-energy-upgrade .actionbtn:disabled { opacity:.48; }
