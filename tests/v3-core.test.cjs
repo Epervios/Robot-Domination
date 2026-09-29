@@ -117,3 +117,30 @@ test("le financement d'urgence évite une impasse sans être reproductible",()=>
  assert.equal(E.bailout(s),true);assert.equal(s.credits,28000);
  assert.equal(s.trust,56);assert.equal(E.bailout(s),false);
 });
+
+
+test("enquête à fréquence : précision, recharge, trois indices et épilogue secret",()=>{
+ const s=E.create();s.storyIndex=1;s.running=true;
+ s.time=0;
+ const early=E.captureSignal(s);
+ assert.equal(early.ok,true);assert.equal(early.captured,false);
+ assert.equal(s.threat,7);
+ assert.equal(E.captureSignal(s).ok,false,"une tentative ratée impose une recharge");
+ s.time=s.scanReadyAt;
+ for(let i=1;i<=3;i++){
+  let loops=0;
+  while(E.signalAlignment(s)<.92&&loops++<200)s.time+=.08;
+  assert.ok(loops<200,"une fenêtre de synchronisation doit apparaître");
+  const result=E.captureSignal(s);
+  assert.equal(result.captured,true);
+  assert.equal(s.signals,i);
+  s.time=s.scanReadyAt;
+ }
+ assert.ok(s.data>=23,"les fragments récompensent réellement l'enquête");
+ assert.ok(s.trust>=77);
+ assert.ok(s.threat<=7);
+ s.storyIndex=3;s.scene="final";s.running=false;
+ assert.equal(E.chooseScene(s,"share"),true);
+ assert.match(s.outcome,/HORIZON COMMUN/);
+ assert.equal(E.validate(JSON.parse(JSON.stringify(s))),true);
+});
