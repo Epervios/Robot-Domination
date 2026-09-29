@@ -226,6 +226,56 @@ function renderSignal(){
  els.btnScan.disabled=!active||full||!!s.scene||s.ended||!s.running||readyIn>0||s.energy<8;
  setText(els.btnScan,full?"SIGNAL IDENTIFIÉ ✓":"CAPTURER LE SIGNAL ◎");
 }
+function renderManagement(){
+ const wage=9000+s.staff*1200;
+ setText(els.resourceMaterials,s.materials+" ◆");
+ setText(els.supplyStatus,s.supply?"TRANSIT / "+Math.ceil(s.supply.remaining)+" S":
+  s.materials<=5?"STOCK CRITIQUE":"STOCK : "+s.materials);
+ setText(els.payrollAmount,fmt(wage)+" ¤");
+ setText(els.payrollTimer,"Prochaine paie : "+Math.max(0,Math.ceil(s.payrollAt-s.time))+" s • "+
+  fmt(wage)+" ¤. Un salaire non payé fait chuter la confiance.");
+ if(s.supply){
+  els.supplyProgress.hidden=false;
+  setWidth(els.supplyFill,100*(1-s.supply.remaining/(s.supply.total||s.supply.remaining)));
+  setText(els.supplyInfo,"Livraison "+s.supply.type.toUpperCase()+" : "+s.supply.count+
+    " composants, arrivée dans "+Math.ceil(s.supply.remaining)+" s.");
+ }else{
+  els.supplyProgress.hidden=true;
+  setText(els.supplyInfo,s.materials<=5?"PÉNURIE IMMINENTE : sécurisez le prochain convoi.":
+    "Anticipez les pénuries. Le marché influence les tarifs des fournisseurs.");
+ }
+ for(const button of supplyButtons){
+  const type=button.dataset.supply,quote=E.materialQuote(s,type);
+  const locked=!!quote.requires&&!s.techs.includes(quote.requires);
+  const label=locked?"Débloquez Boucle circulaire":quote.count+" ◆ · "+fmt(quote.cost)+" ¤ · "+
+   Math.ceil(quote.duration)+" s";
+  setText(els["supply"+type[0].toUpperCase()+type.slice(1)],label);
+  button.disabled=!!s.supply||!!s.scene||s.ended||locked||s.credits<quote.cost;
+  button.title=locked?"Recherchez la Boucle circulaire.":s.credits<quote.cost?
+   "Crédits insuffisants pour ce fournisseur.":quote.title;
+ }
+ setText(els.crewLabel,s.staff+" TECHNICIENS");
+ setText(els.wearValue,Math.round(s.wear)+" % D'USURE");
+ setText(els.moraleValue,Math.round(s.morale)+" %");
+ setWidth(els.wearFill,s.wear);
+ setWidth(els.moraleFill,s.morale);
+ els.btnMaintain.disabled=s.wear<1||s.credits<32000||!!s.scene||s.ended;
+ els.btnHire.disabled=s.staff>=16||s.credits<68000||!!s.scene||s.ended;
+ for(const button of regionButtons){
+  const id=button.dataset.region,region=E.REGIONS[id],
+    unlocked=E.regionAvailable(s,id),selected=s.region===id;
+  button.classList.toggle("is-selected",selected);
+  button.setAttribute("aria-pressed",String(selected));
+  button.disabled=!unlocked||!!s.scene||s.ended;
+  button.title=unlocked?region.description:
+    "Déblocage : acte "+(region.unlock+1)+", "+region.at+" robots livrés.";
+ }
+ for(const key of ["crew","public","nora"]){
+  const suffix=key[0].toUpperCase()+key.slice(1);
+  setText(els["faction"+suffix],Math.round(s.factions[key])+" %");
+  setWidth(els["faction"+suffix+"Fill"],s.factions[key]);
+ }
+}
 function renderContract(){
  const offer=E.getOffer(s),c=s.contract,next=E.CONTRACTS[s.contractIndex];
  setText(els.contractTag,c?"CONTRAT SIGNÉ":offer?"NOUVELLE OFFRE":"SURVEILLANCE");
@@ -386,6 +436,30 @@ els.buildGrid.addEventListener("click",()=>{
  flash("tech",3);toast("Réseau renforcé : "+s.regen+" énergie/s.");render();
 });
 els.btnBailout.addEventListener("click",()=>{if(E.bailout(s)){toast("Financement d'urgence reçu. Votre confiance diminue.",true);render();}});
+for(const button of supplyButtons)button.addEventListener("click",()=>{
+ const type=button.dataset.supply,quote=E.materialQuote(s,type);
+ if(!E.orderMaterials(s,type)){
+  toast(s.supply?"Un convoi est déjà en route.":s.credits<quote.cost?"Trésorerie insuffisante.":"Fournisseur indisponible.",true);
+  return;
+ }
+ ping(590,.12);toast("COMMANDE CONFIRMÉE : "+quote.count+" composants, "+Math.ceil(quote.duration)+" s.");render();
+});
+for(const button of regionButtons)button.addEventListener("click",()=>{
+ const region=E.REGIONS[button.dataset.region];
+ if(!E.selectRegion(s,button.dataset.region)){
+  toast("Marché verrouillé : progression narrative ou livraisons insuffisantes.",true);return;
+ }
+ ping(610,.16);toast("DÉPLOIEMENT : "+region.title+". "+region.description);render();
+});
+els.btnMaintain.addEventListener("click",()=>{
+ if(!E.maintain(s)){toast("Maintenance indisponible : 32 000 ¤ et une usine usée requis.",true);return;}
+ flash("tech",2);toast("MAINTENANCE : ligne arrêtée 8 s, état mécanique restauré.");render();
+});
+els.btnHire.addEventListener("click",()=>{
+ if(!E.hire(s)){toast("Recrutement indisponible : budget ou effectif maximal.",true);return;}
+ ping(780,.18);toast("DEUX TECHNICIENS RECRUTÉS : cadence améliorée, salaires plus élevés.");render();
+});
+
 els.btnScan.addEventListener("click",()=>{
  const result=E.captureSignal(s);
  if(!result.ok){toast(result.reason,true);return;}
