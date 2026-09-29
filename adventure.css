@@ -1,0 +1,186 @@
+/* Robot Domination v2 — direction artistique : salle de contrôle / thriller technologique. */
+:root { --night: #060b16; --panel: #101a2a; --panel-edge: #24364e; --ice: #7de9fb; --acid: #cbfa83; --danger: #ff747b; --muted: #a5b8cd; }
+html { scroll-behavior: smooth; }
+body {
+  min-height: 100vh; background:
+    radial-gradient(ellipse at 75% -12%, rgba(42,111,146,.27), transparent 46%),
+    radial-gradient(ellipse at 0% 68%, rgba(31,68,106,.22), transparent 52%),
+    var(--night);
+  color: #f2f8ff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+body::before {
+  content: ""; position: fixed; pointer-events: none; inset: 0; opacity: .14;
+  background-image: linear-gradient(rgba(125,233,251,.12) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(125,233,251,.12) 1px, transparent 1px);
+  background-size: 58px 58px; mask-image: linear-gradient(140deg, #000, transparent 75%);
+}
+.container { max-width: 1400px; padding: 30px 20px 42px; position: relative; }
+.container > h1 {
+  font-weight: 850; font-size: clamp(2.1rem, 5vw, 4.6rem); line-height: 1.05;
+  text-align: left; margin: 0 0 14px; text-transform: uppercase; letter-spacing: -.055em;
+  background: linear-gradient(105deg,#eafaff 3%,#7de9fb 48%,#bdf68a); -webkit-background-clip: text;
+}
+.container > h1::after {
+  content: " / UN FUTUR À CONSTRUIRE, UNE IA À SURVEILLER";
+  display: block; margin-top: 8px; font-size: .23em; font-weight: 700; letter-spacing: .21em;
+  color: #98bbcb; -webkit-text-fill-color: #98bbcb;
+}
+.phase { border: 1px solid rgba(125,233,251,.32); color: #071320; margin: 3px 0 12px; text-align: left; }
+.objective {
+  background: rgba(20,36,56,.75); border: 1px solid #253a52; color: #ccfc8a;
+  text-align: left; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+}
+.stats { grid-template-columns: repeat(5,minmax(130px,1fr)); gap: 10px; }
+.stats .stat {
+  position: relative; overflow: hidden; min-height: 73px; border: 1px solid #253b53;
+  border-radius: 11px; padding: 13px; background: rgba(15,27,43,.88);
+  color: #bcd0df; font-size: .8rem; letter-spacing: .02em;
+}
+.stats .stat b { display: inline-block; color: #f3fcff; margin-top: 8px; font-size: 1.35rem; letter-spacing: -.035em; }
+.stats .stat:hover { border-color: rgba(125,233,251,.55); }
+.stats .stat:nth-child(6) b { color: #ffb7a6; }
+.grid { gap: 14px; align-items: flex-start; }
+.card {
+  background: linear-gradient(155deg,rgba(19,33,52,.96),rgba(12,23,39,.97));
+  border: 1px solid #2b425a; border-radius: 14px; box-shadow: 0 14px 36px rgba(0,0,0,.16);
+  min-width: 0; flex-basis: 280px; color: #e8f3fc;
+}
+.card > b { font-size: 1.08rem; color: #e9faff; }
+.card:nth-child(2) { flex-grow: 1.35; }
+#techtree { max-height: 680px; overflow: auto; padding-right: 5px; scrollbar-color: #54768a #152437; }
+#techtree .techbtn { text-align: left; line-height: 1.5; }
+button { font-family: inherit; }
+.actionbtn, .techbtn, .choicebtn {
+  background: #1c405d; border: 1px solid #375d78; color: #effaff;
+  border-radius: 9px; padding: 11px; transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.actionbtn:hover:not(:disabled), .techbtn:hover:not(:disabled), .choicebtn:hover:not(:disabled) {
+  transform: translateY(-2px); background: #28607d; border-color: #8deef9;
+}
+.actionbtn:focus-visible, .techbtn:focus-visible, .choicebtn:focus-visible,
+.adventure-dialog-choice:focus-visible { outline: 3px solid #d2fa86; outline-offset: 3px; }
+.actionbtn:disabled, .techbtn:disabled { opacity: .48; }
+.message { background: #13283b; border: 1px solid #254158; line-height: 1.5; padding: 10px; color: #cedeea; }
+.progressbar { height: 9px; background: #20364b; overflow: hidden; }
+.progress { transition: width .6s ease, background .6s ease; }
+.footer { color: #7f9aac; }
+.offline-buttons { display: flex; gap: 9px; margin-top: 10px; }
+.offline-buttons .actionbtn { width: 50%; margin-top: 0; font-size: .85rem; }
+.offline-buttons .actionbtn:disabled { cursor: not-allowed; opacity: .43; }
+.adventure-panel {
+  display: grid; grid-template-columns: minmax(240px,.72fr) minmax(0,1.28fr);
+  min-height: 265px; overflow: hidden; border: 1px solid #40677b; border-radius: 17px;
+  background: linear-gradient(115deg,rgba(10,24,40,.98),rgba(20,43,60,.91));
+  margin: 0 0 22px; box-shadow: 0 20px 60px rgba(0,0,0,.23);
+}
+.adventure-scene {
+  position: relative; min-height: 265px; display: flex; align-items: center; justify-content: center;
+  isolation: isolate; overflow: hidden;
+  background: radial-gradient(circle at 52% 46%,rgba(99,207,228,.21),transparent 39%),
+              linear-gradient(135deg,#10273d,#081523 69%);
+}
+.adventure-scene::before {
+  content: ""; position: absolute; inset: 0; opacity: .25; pointer-events: none;
+  background: repeating-linear-gradient(transparent 0,transparent 3px,rgba(117,224,246,.13) 4px,transparent 5px);
+}
+.adventure-scene::after {
+  content: "RC // SECURE UPLINK"; position: absolute; top: 18px; left: 19px; z-index: 2;
+  font-family: ui-monospace,monospace; font-size: .66rem; letter-spacing: .12em; color: #8cb9ce;
+}
+.adventure-orbit {
+  position: absolute; width: 224px; aspect-ratio: 1; border: 1px solid rgba(125,233,251,.25);
+  border-radius: 50%; box-shadow: 0 0 0 24px rgba(120,224,245,.025),0 0 56px rgba(54,215,241,.13),inset 0 0 30px rgba(89,210,234,.12);
+}
+.adventure-orbit::before, .adventure-orbit::after {
+  content: ""; position: absolute; border: 1px dashed rgba(115,205,235,.33); border-radius: 50%;
+  inset: 19px;
+}
+.adventure-orbit::after { inset: 46px; border-style: solid; box-shadow: 0 0 16px rgba(105,245,241,.15); }
+.adventure-radar {
+  position: absolute; width: 224px; aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(from 40deg,transparent 0deg,rgba(78,220,234,.25) 36deg,transparent 67deg);
+  animation: orbit-rotate 9s linear infinite;
+}
+.adventure-core {
+  position: relative; z-index: 1; width: 92px; aspect-ratio: 1; border: 2px solid #91eff6; border-radius: 25%;
+  transform: rotate(45deg); display: grid; place-items: center;
+  background: linear-gradient(145deg,#20617b,#133449);
+  box-shadow: 0 0 34px rgba(87,218,243,.33), inset 0 0 24px rgba(84,217,238,.22);
+  animation: core-pulse 4s ease-in-out infinite;
+}
+.adventure-core::before {
+  content: ""; width: 35px; aspect-ratio: 1; border-radius: 50%; border: 4px solid #dbffff;
+  box-shadow: 0 0 22px #78f6fd,inset 0 0 16px #78f6fd;
+}
+.adventure-scene[data-threat="high"] .adventure-core { border-color: var(--danger); box-shadow: 0 0 36px #e55d65aa; }
+.adventure-scene[data-threat="high"] .adventure-radar { filter: hue-rotate(140deg); animation-duration: 4s; }
+.adventure-scene[data-threat="medium"] .adventure-radar { filter: hue-rotate(280deg); }
+.adventure-scene-enter .adventure-core { animation: scene-enter .7s ease-out, core-pulse 4s ease-in-out .7s infinite; }
+.adventure-scan {
+  position: absolute; bottom: 18px; left: 19px; right: 19px;
+  font: .68rem/1.4 ui-monospace,monospace; letter-spacing: .12em; color: #8db4c6;
+}
+.adventure-scan::before { content:"● "; color:#9df4b9; animation: light-blink 1.8s step-end infinite; }
+.adventure-content { padding: clamp(17px,2.8vw,32px); align-self: center; }
+.adventure-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.adventure-kicker { color: #b3f388; font: 750 .71rem ui-monospace,monospace; letter-spacing: .2em; }
+.adventure-status { margin-left: auto; font-size: .67rem; letter-spacing: .07em; text-transform: uppercase;
+  border: 1px solid #526476; color: #b0c5d4; padding: 5px 10px; border-radius: 50px; }
+.adventure-status.is-ready { color: #d4ff98; border-color: #a1d570; animation: light-blink 1.6s steps(2) infinite; }
+.adventure-content h2 { font-size: clamp(1.55rem,2.6vw,2.7rem); margin: 13px 0 8px; line-height: 1.04; letter-spacing: -.045em; }
+.adventure-content > p { color: #adc4d4; margin: 10px 0 20px; line-height: 1.5; }
+.adventure-mission-track { height: 7px; background: #253c4f; border-radius: 30px; overflow: hidden; }
+.adventure-mission-track span { display:block; height:100%; width:0; border-radius:inherit;
+  background: linear-gradient(90deg,#4acbdd,#c4f889); transition:width .5s ease; }
+.adventure-caption { margin-top: 8px; display:flex; flex-wrap:wrap; justify-content: space-between;
+  gap:6px; color: #94adbd; font: .76rem ui-monospace,monospace; }
+.adventure-history { border-top: 1px solid #2c475d; margin-top: 20px; padding-top: 10px; }
+.adventure-history > strong { font: .7rem ui-monospace,monospace; color:#9eecf5; letter-spacing:.16em; }
+.adventure-history-item { display:flex; flex-direction:column; gap:4px; padding:9px 0 4px;
+  color:#a8c7d7; font-size:.76rem; line-height:1.4; }
+.adventure-history-item strong { color:#e3eff7; font-size:.8rem; }
+.adventure-history-empty { color:#91a8b8; font-size:.76rem; margin:8px 0 0; }
+.adventure-overlay[hidden] { display:none!important; }
+.adventure-overlay {
+  position:fixed; inset:0; z-index:120; padding:24px 12px; overflow-y:auto;
+  display:flex; align-items:center; justify-content:center; background:rgba(3,9,19,.88); backdrop-filter: blur(12px);
+}
+.adventure-dialog {
+  width:min(100%,690px); max-height:calc(100dvh - 48px); overflow:auto; padding:clamp(21px,4vw,44px);
+  background:linear-gradient(160deg,#193046,#0b1929); border:1px solid #6fa5b3;
+  border-radius:19px; box-shadow:0 32px 110px #000c,0 0 60px #428da32a; animation: dialog-enter .35s ease-out;
+}
+.adventure-dialog-kicker { font:.73rem ui-monospace,monospace; letter-spacing:.2em; color:#c8f68b; }
+.adventure-dialog-title { font-weight:850; font-size:clamp(1.9rem,5vw,3.3rem); letter-spacing:-.05em; margin:12px 0 18px; }
+.adventure-dialog-scene { color:#d1e3eb; font-size:clamp(.98rem,1.7vw,1.12rem); line-height:1.76; border-left:3px solid #9feef5; padding:5px 0 5px 18px; }
+.adventure-dialog-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:27px; }
+.adventure-dialog-choice { padding:20px 17px; display:flex; flex-direction:column; gap:10px; text-align:left;
+  background:#183c51; border:1px solid #42687b; border-radius:13px; color:#f5fcff; cursor:pointer;
+  transition:border .2s,background .2s,transform .2s; }
+.adventure-dialog-choice:hover:not(:disabled) { border-color:#c3f78b; background:#21536c; transform:translateY(-3px); }
+.adventure-dialog-choice strong { font-size:1rem; line-height:1.4; }
+.adventure-dialog-choice span { color:#a8c3d2; line-height:1.5; font-size:.79rem; }
+.adventure-dialog-choice:disabled { opacity:.4; cursor:not-allowed; }
+.adventure-dialog-hint { color:#8fa9b9; margin-top:20px; font:.75rem/1.5 ui-monospace,monospace; }
+@keyframes orbit-rotate { to { transform:rotate(360deg); } }
+@keyframes core-pulse { 50% { box-shadow:0 0 51px rgba(87,218,243,.54),inset 0 0 30px rgba(84,217,238,.35); } }
+@keyframes light-blink { 50% { opacity:.45; } }
+@keyframes scene-enter { from { opacity:.1; transform:rotate(45deg) scale(.5); } to { opacity:1; transform:rotate(45deg) scale(1); } }
+@keyframes dialog-enter { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+@media(max-width:1050px) { .stats { grid-template-columns:repeat(3,minmax(120px,1fr)); } }
+@media(max-width:750px) {
+  .container { padding:18px 12px 32px; }
+  .adventure-panel { grid-template-columns:1fr; }
+  .adventure-scene { min-height:185px; }
+  .adventure-orbit, .adventure-radar { width:170px; }
+  .adventure-core { width:74px; }
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .grid { flex-direction:column; }
+  .card { width:100%; box-sizing:border-box; }
+  .adventure-dialog-choices { grid-template-columns:1fr; }
+  .adventure-dialog { max-height:calc(100dvh - 25px); }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important;
+    transition-duration:.01ms!important; scroll-behavior:auto!important; }
+}
