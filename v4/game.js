@@ -132,8 +132,15 @@ function handleEvents(events){
  for(const ev of events){
   if(ev.type==="built"){flash("build",1);if(s.sound&&s.produced%4===0)ping(630,.08,"triangle",.02);}
   if(ev.type==="sold"&&s.sold%5===0){ping(790,.11,"sine",.017);}
-  if(ev.type==="scene"){flash("tech",2);openScene();ping(400,.26,"sine");}
-  if(ev.type==="crisis"){flash("danger",3);ping(180,.45,"sawtooth");activate("atelier",false);toast("ALERTE : réarmez les relais avant la fin du décompte !",true);}
+  if(ev.type==="scene"){
+    flash("tech",3);openScene();
+    if(s.sound){ping(510,.23,"triangle");setTimeout(()=>ping(680,.19,"sine"),300);}
+   }
+  if(ev.type==="crisis"){
+    flash("danger",3);ping(180,.45,"sawtooth");
+    if(s.sound)setTimeout(()=>ping(240,.3,"sawtooth",.025),350);
+    activate("atelier",false);toast("ALERTE : réarmez les relais dans l'ordre et avant la fin du décompte !",true);
+   }
   if(ev.type==="crisisFailed"){flash("danger",3);toast("Échec : atelier coupé pendant 18 secondes.",true);}
   if(ev.type==="market"){toast("MARCHÉ : "+marketName(s.market));}
   if(ev.type==="contract"){toast(ev.won?"Contrat rempli ! Bonus de données et de confiance.":"Contrat expiré : réputation pénalisée.",!ev.won);ping(ev.won?880:160,.18);}
@@ -296,6 +303,9 @@ function renderContract(){
  els.btnAccept.hidden=!offer;els.btnReject.hidden=!offer;
 }
 function render(force=false){
+ els.game.dataset.season=String(Math.min(3,Math.floor(s.storyIndex/4)+1));
+ els.game.dataset.region=s.region;
+ els.materialsBadge.classList.toggle("is-low",s.materials<=5);
  setText(els.statCredits,fmt(s.credits));
  setText(els.statEnergy,fmt(s.energy));
  setText(els.statSold,fmt(s.sold));
@@ -447,7 +457,7 @@ function repair(station){
  const result=E.repair(s,station);
  if(!result.ok){toast(result.reason,true);ping(160,.14,"sawtooth");return;}
  flash("tech",2);ping(700+s.crisis?.step*150,.11);
- if(result.done){toast("RELAIS RÉARMÉS ! +9 données et +5 confiance.");ping(920,.3,"triangle");}
+ if(result.done){toast("CIRCUITS RÉARMÉS ! +9 données et +5 confiance.");ping(920,.3,"triangle");}
  render();
 }
 function restart(){
@@ -558,6 +568,11 @@ function sim(){
  if(now-lastUi>125){lastUi=now;render();}
 }
 setInterval(sim,100);
+setInterval(()=>{
+ if(s.sound&&s.running&&!s.scene&&!s.ended){
+   ping(s.storyIndex>=8?95:s.storyIndex>=4?108:130,.85,"triangle",.005);
+ }
+},19000);
 setInterval(()=>{if(!s.ended&&s.time>0)save(true);},14000);
 window.addEventListener("pagehide",()=>{if(s.time>0)save(true);});
 document.addEventListener("visibilitychange",()=>{lastSim=performance.now();});
@@ -611,7 +626,11 @@ function draw(now){
  animationTime+=reduced?0:dt*(s.running?1:.13);
  const a=animationTime,threat=s.threat;
  const bg=ctx.createLinearGradient(0,0,w,h);
- bg.addColorStop(0,threat>65?"#301a1d":"#102c39");bg.addColorStop(.65,"#112932");bg.addColorStop(1,"#07131b");
+ const seasonal=s.storyIndex>=8?"#35252d":s.storyIndex>=4?"#173349":"#102c39";
+ const sectorTint=s.region==="medical"?"#193f3e":s.region==="frontier"?"#322936":seasonal;
+ bg.addColorStop(0,threat>65?"#301a1d":sectorTint);
+ bg.addColorStop(.65,s.storyIndex>=8?"#1f2b36":"#112932");
+ bg.addColorStop(1,"#07131b");
  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  // Structure du hangar et perspective au sol.
  ctx.fillStyle="#10212c";ctx.fillRect(0,0,w,h*.63);
@@ -624,7 +643,8 @@ function draw(now){
   line(0,y,w,y,"#20434d",1);
  }
  const halo=ctx.createRadialGradient(w*.5,h*.22,8,w*.5,h*.22,w*.4);
- halo.addColorStop(0,threat>65?"#a84c3e33":"#64bbbf36");halo.addColorStop(1,"#00000000");
+ halo.addColorStop(0,threat>65?"#a84c3e33":
+   s.storyIndex>=8?"#e68f703d":s.storyIndex>=4?"#748ad93a":"#64bbbf36");halo.addColorStop(1,"#00000000");
  ctx.fillStyle=halo;ctx.fillRect(0,0,w,h*.72);
  // Tuyaux de plafond.
  rounded(0,h*.1,w,h*.028,3,"#27434d","#42646b");
@@ -711,6 +731,29 @@ function draw(now){
   const xx=w*(.13+((a*.09*(s.running?1:.05)+i*.168)% .74));
   const yy=h*.7;
   robot(xx,yy,Math.min(h*.19,w*.09,55),a+i,i===count-1&&s.techs.includes("autonomy"));
+ }
+ // Composants visibles : stock logistique, progression des convois et usure réelle.
+ const crateCount=Math.min(5,Math.floor(s.materials/7));
+ for(let i=0;i<crateCount;i++){
+  const x=w*(.035+i*.038),y=h*(.865+(i%2)*.035);
+  rounded(x,y,w*.036,h*.04,1,s.supply?"#b3c19b":"#7a9b91","#c2d5aa");
+  line(x+2,y+3,x+w*.036-2,y+h*.04-3,"#37515a",1);
+ }
+ if(s.supply){
+  const deliveryProgress=1-Math.max(0,s.supply.remaining)/Math.max(.001,s.supply.total);
+  const truckX=w*(.01+deliveryProgress*.83),truckY=h*.86;
+  rounded(truckX,truckY,w*.06,h*.05,2,"#b8cda0","#e4efac");
+  rounded(truckX+w*.059,truckY+h*.022,w*.022,h*.028,2,"#769fa1");
+  for(const i of [0,.054]){
+   ctx.beginPath();ctx.arc(truckX+w*(i+.016),truckY+h*.052,Math.max(2,w*.006),0,Math.PI*2);
+   ctx.fillStyle="#192b31";ctx.fill();
+  }
+ }
+ if(s.wear>67){
+  const beaconX=w*.13,beaconY=h*.14,blink=Math.sin(a*6)>0;
+  ctx.beginPath();ctx.arc(beaconX,beaconY,Math.max(3,w*.009),0,Math.PI*2);
+  ctx.fillStyle=blink?"#ef876e":"#4e3136";ctx.fill();
+  if(blink){ctx.shadowBlur=14;ctx.shadowColor="#ef876e";ctx.fill();ctx.shadowBlur=0;}
  }
  // Hall de stockage et compteur physique sur la droite.
  rounded(w*.84,h*.43,w*.14,h*.17,3,"#162d38","#5a7e81");
