@@ -60,25 +60,33 @@
         <div class="adventure-history"><strong>JOURNAL DE CAMPAGNE</strong><div id="adventureHistory"></div></div>
       </div>
     </section>
-    <div class="stats" style="margin-bottom:18px;">
-      <div class="stat" title="Nombre total de robots vendus. Utilisé pour atteindre les objectifs de phase.">🤖 Robots Vendus<br><b id="robots">0</b></div>
-      <div class="stat">💰 Argent<br><b id="money">1,000</b></div>
-      <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="Acheter Énergie (10K$ pour 100⚡)" style="padding: 1px 3px; font-size: 0.7em; vertical-align: middle;">+</button><br><b id="energy">100</b></div>
+    <div class="stats" aria-label="Indicateurs principaux">
+      <div class="stat" title="Robots vendus : jalons de campagne.">🤖 Ventes<br><b id="robots">0</b></div>
+      <div class="stat">💰 Trésorerie<br><b id="money">300K</b></div>
+      <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="100 énergie : 10 000 $" aria-label="Acheter 100 unités d'énergie">+</button><br><b id="energy">5K</b></div>
       <div class="stat">🧠 Recherche<br><b id="research">0</b></div>
-      <div class="stat">⭐ Réputation<br><b id="reputation">100</b></div>
-      <div class="stat">⚠️ Menace IA<br><b id="aithreat">0</b></div>
       <div class="stat">📦 Stock<br><b id="stock">0</b></div>
-      <div class="stat">📈 Demande<br><b id="demand">25</b></div>
-      <div class="stat">🌍 Humanité<br><b id="humansDisplay">7.8B</b></div>
-      <div class="stat">🚨 Cmd. spéciale<br><b id="specialorders">Aucune</b></div>
+      <div class="stat">⚠️ Menace IA<br><b id="aithreat">0</b></div>
     </div>
+    <details class="hud-secondary"><summary>Indicateurs complémentaires <span>▾</span></summary>
+      <div class="stats secondary-stats">
+        <div class="stat">⭐ Réputation<br><b id="reputation">50</b></div>
+        <div class="stat">📈 Demande<br><b id="demand">0</b></div>
+        <div class="stat">🌍 Humanité<br><b id="humansDisplay">7.8B</b></div>
+        <div class="stat">🚨 Commandes spéciales<br><b id="specialorders">Aucune</b></div>
+      </div>
+    </details>
     <div>
       Contrôle du joueur : <span id="playercontrol">100</span>%
       <div class="progressbar"><div id="controlbar" class="progress" style="width:100%;background:#38bdf8;"></div></div>
     </div>
-    <br>
+    <nav class="cockpit-tabs" aria-label="Sections du centre de commandement" role="tablist">
+      <button type="button" role="tab" id="tab-production" data-panel-tab="production" aria-controls="panel-production" aria-selected="true" class="is-active">🏭 Production</button>
+      <button type="button" role="tab" id="tab-research" data-panel-tab="research" aria-controls="panel-research" aria-selected="false">🧪 Recherche</button>
+      <button type="button" role="tab" id="tab-journal" data-panel-tab="journal" aria-controls="panel-journal" aria-selected="false">📡 Journal</button>
+    </nav>
     <div class="grid">
-      <div class="card">
+      <div class="card is-active" data-view-panel="production" role="tabpanel" id="panel-production" aria-labelledby="tab-production">
         <b>🤖 Production</b><br><br>
         <button class="actionbtn" id="btnCreate">Créer Robot (<span id="robotCostDisplay">5000</span>$ + <span id="costEnergy">10</span> ⚡)</button>
         <div id="manualProgressDisplayContainer" style="font-size:0.9em; color:#86efac; margin-top:4px; height:1.2em; text-align:center; display:none;">
@@ -95,8 +103,27 @@
           </div>
           <div id="autoProduction" class="auto info-group" style="display:none;">✓ Production automatique</div>
         </div>
+        <section id="strategyConsole" class="strategy-console" aria-label="Décisions stratégiques">
+          <div class="strategy-header"><strong>POLITIQUE INDUSTRIELLE</strong><span id="modeCooldown">Réglage disponible</span></div>
+          <div class="mode-options">
+            <button type="button" data-operation-mode="balanced" class="is-selected" aria-pressed="true"><strong>Équilibré</strong><small>Cadence standard</small></button>
+            <button type="button" data-operation-mode="surge" aria-pressed="false"><strong>Expansion</strong><small>+45 % cadence</small></button>
+            <button type="button" data-operation-mode="precision" aria-pressed="false"><strong>Qualité</strong><small>Fiabilité accrue</small></button>
+          </div>
+          <div class="market-banner"><span>ÉTAT DU MARCHÉ</span><b id="marketCondition">Marché stable</b><small id="marketCountdown">Évolution prochaine</small></div>
+          <div class="contract-board">
+            <div class="contract-label">APPELS D'OFFRES</div>
+            <strong id="contractTitle">Contrats verrouillés</strong>
+            <p id="contractBody">Débloqués à 50 robots vendus.</p>
+            <div id="contractProgress" class="contract-progress" hidden><span id="contractBar"></span></div>
+            <div class="contract-actions">
+              <button class="actionbtn" type="button" id="btnContractAccept" hidden>Accepter le contrat</button>
+              <button class="actionbtn secondary-action" type="button" id="btnContractDecline" hidden>Passer</button>
+            </div>
+          </div>
+        </section>
       </div>
-      <div class="card">
+      <div class="card" data-view-panel="research" role="tabpanel" id="panel-research" aria-labelledby="tab-research">
         <b>Recherche & Innovations</b>
         <div id="researchProgressContainer" class="research-current" style="display:none" aria-live="off">
           <div id="researchProgressLabel" class="research-label"></div>
@@ -106,7 +133,7 @@
         <div id="autoResearchDisplay" class="auto" style="display:none; margin-top:8px;">✓ Recherche automatique</div>
         <div style="font-size:0.90em;margin-top:10px;color:#ccc;">Techs acquises : <span id="completedtechs">aucune</span></div>
       </div>
-      <div class="card">
+      <div class="card" data-view-panel="journal" role="tabpanel" id="panel-journal" aria-labelledby="tab-journal">
         <b>Actualités & Narration</b><br><br>
         <div id="messages"></div>
         <button class="actionbtn" id="btnPlayPause">▶️ Démarrer</button>
@@ -1160,5 +1187,8 @@ resetGame();
 </script>
 <script src="adventure-engine.js"></script>
 <script src="adventure-ui.js"></script>
+<script src="strategy-engine.js"></script>
+<script src="strategy-ui.js"></script>
+<script src="cockpit.js"></script>
 </body>
 </html>
