@@ -75,6 +75,19 @@ try{
  for(const station of [1,0,2])await page.locator('[data-repair="'+station+'"]').click();
  assert.equal(await page.evaluate(()=>window.RobotDominationV3.getState().stats.repairs),3);
  assert.equal(await page.locator("#crisisHud").isVisible(),false);
+ // Le jeu d'enquête ne doit pas être un bouton aléatoire : viser la fenêtre de fréquence.
+ await page.locator('[data-panel="operations"]').click();
+ await page.evaluate(()=>{
+  const s=window.RobotDominationV3.getState();
+  const engine=window.RobotDominationV3.engine;
+  s.scanReadyAt=0;
+  for(let i=0;i<150 && engine.signalAlignment(s)<.99;i++)s.time+=.04;
+ });
+ await page.locator("#btnScan").click();
+ assert.equal(await page.evaluate(()=>window.RobotDominationV3.getState().signals),1);
+ assert.match(await page.locator("#signalClue").textContent(),/Fragment 1/);
+ await page.screenshot({path:path.join(out,"v3-signal-mobile.png"),animations:"disabled"});
+ console.log("PASS : mini-jeu de décryptage, fréquence synchronisée et indice conservé.");
  assert.deepEqual(errors,[]);
  console.log("PASS : intervention tactile, 3 relais, aucune erreur JavaScript.");
  console.log("CAPTURES : v3-desktop.png, v3-mobile.png, v3-crisis-mobile.png.");
