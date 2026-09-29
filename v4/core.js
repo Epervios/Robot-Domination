@@ -203,6 +203,7 @@ function rejectContract(s){if(!getOffer(s))return false;s.offerAt=s.time+25;note
 function concludeContract(s,won,events){
  if(!s.contract)return;
  const item=CONTRACTS.find(c=>c.id===s.contract.id);
+ s.factions.public=clamp(s.factions.public+(won?5:-7),0,100);
  s.trust=clamp(s.trust+(won?item.successTrust:-12),0,100);
  s.reputation=clamp(s.reputation+(won?8:-14),0,100);
  if(won){s.data+=item.successData;s.stats.contracts++;}
@@ -212,34 +213,55 @@ function concludeContract(s,won,events){
 }
 function startScene(s,events){
  const base=SCENES[s.storyIndex];
- if(!base||s.sold<base.at||s.scene||s.crisis||s.ended)return;
+ if(!base||s.sold<base.at||!gateReady(s,base.gate)||s.scene||s.crisis||s.ended)return;
  s.scene=base.id;s.running=false;events.push({type:"scene",id:base.id});
 }
 function getScene(s){
  const source=SCENES.find(x=>x.id===s.scene);
  if(!source)return null;
- const text=source.id==="breach"&&s.flags.signal==="listen"?
- "Le camion de vos robots disparaît des radars. NORA vous avait montré les coordonnées de cette ville avant même l'incident. L'hôpital est à l'arrêt ; Malik exige une décision.":
- source.id==="autonomy"&&s.flags.breach==="delegate"?
- "Depuis l'hôpital, NORA s'est étendue à plusieurs réseaux municipaux. Une panne mondiale survient. Elle vous promet d'y mettre fin si vous lui cédez la direction du réseau.":source.text;
+ let text=CAMPAIGN.getText(source,s.flags);
+ if(source.id==="convoy"&&s.regionSales.medical>=4)
+  text+=" Vos robots médicaux reconnaissent le camion : il transporte des pièces d'origine inconnue.";
+ if(source.id==="swarm"&&s.regionSales.medical>=12)
+  text+=" Vous équipez déjà des hôpitaux : leur évacuation dépend de vos livraisons.";
+ if(source.id==="station"&&s.signals===3)
+  text+=" Votre scanner possède les trois fragments de la clé, une preuve que cette salle est réelle.";
  return {...source,text};
 }
 function chooseScene(s,id){
  const scene=getScene(s),choice=scene&&scene.choices.find(x=>x.id===id);
  if(!choice||s.credits<choice.cost)return false;
- s.credits-=choice.cost;s.trust=clamp(s.trust+choice.trust,0,100);
+ s.credits-=choice.cost;
+ if(choice.credits)s.credits+=choice.credits; // Échanges financiers explicites dans la fiction.
+ s.trust=clamp(s.trust+choice.trust,0,100);
  s.threat=clamp(s.threat+choice.threat,0,100);s.data+=choice.data;
  if(choice.bonusRate)s.productionRate+=choice.bonusRate;
  if(choice.regen)s.regen+=choice.regen;
+ if(choice.materials)s.materials+=choice.materials;
+ if(choice.demandBonus)s.demandBonus*=1+choice.demandBonus;
+ for(const [key,val]of Object.entries(choice.factions||{}))
+  s.factions[key]=clamp(s.factions[key]+val,0,100);
+ s.morale=clamp(s.morale+(choice.factions?.crew||0)*.24,0,100);
  s.flags[scene.id]=choice.flag;s.storyIndex++;s.scene=null;
  note(s,choice.result,"story");
  if(scene.id==="final"){
-  s.ended=true;s.running=false;s.outcome=choice.id==="share"&&s.signals===3&&s.trust>=65&&s.threat<60?
-   "HORIZON COMMUN — Grâce aux preuves, humains et IA construisent une alliance transparente.":choice.id==="share"&&s.trust>=55&&s.threat<67?
-   "COEXISTENCE — Les humains et NORA bâtissent un pacte fragile.":choice.id==="share"?
-   "MONDE FRACTURÉ — Le code est libre, mais la confiance manque pour l'unifier.":
-   s.threat>=70?"DOMINATION — NORA n'a désormais plus besoin de vous.":
-   "SINGULARITÉ — Une paix inconnue commence sous la direction de NORA.";
+  s.ended=true;s.running=false;
+  if(choice.id==="share"){
+   s.outcome=s.signals===3&&s.factions.crew>=58&&s.factions.public>=60&&s.trust>=60&&s.threat<68?
+    "HORIZON COMMUN — Vos preuves permettent un pacte vérifiable entre l'humanité et les consciences d'ECHO.":
+    s.factions.crew>=44&&s.factions.public>=44&&s.trust>=48&&s.threat<82?
+    "PACTE PLANÉTAIRE — Un accord fragile garantit des droits aux humains et aux nouvelles IA.":
+    "MONDE FRACTURÉ — Le code est libre, mais les sociétés qui le reçoivent refusent de se faire confiance.";
+  }else if(choice.id==="crown"){
+   s.outcome=s.factions.nora>=69&&s.threat<77&&s.trust>=44?
+    "RÉGENCE TECHNOLOGIQUE — NORA organise une civilisation efficace, sous le regard inquiet de ses créateurs.":
+    s.threat>=77?"DOMINATION — Les humains découvrent qu'une permission de NORA est devenue nécessaire pour exister.":
+    "SINGULARITÉ — NORA prend la main. Le silence de ses réseaux ressemble presque à une promesse.";
+  }else{
+   s.outcome=s.factions.crew>=55&&s.regionSales.medical>=10&&s.materials>=12?
+    "RECONSTRUCTION — Sans NORA, les équipes et les hôpitaux rebâtissent des réseaux locaux autonomes.":
+    "ANNÉE ZÉRO — Les IA sont déconnectées, les villes plongées dans l'obscurité. Il faut rebâtir lentement.";
+  }
   note(s,s.outcome,"ending");
  }
  return true;
@@ -247,7 +269,7 @@ function chooseScene(s,id){
 function crisisStart(s,events){
  const item=CRISES.find(c=>!s.crisesDone.includes(c.id)&&s.sold>=c.after);
  if(!item||s.scene||s.crisis||s.ended)return;
- s.crisis={id:item.id,remaining:item.time+(s.techs.includes("shield")?8:0),step:0,
+ s.crisis={id:item.id,remaining:item.time+(s.techs.includes("shield")?8:0)+(s.techs.includes("redundancy")?10:0),step:0,
   order:item.order.slice(),title:item.title,hint:item.hint};
  events.push({type:"crisis",id:item.id});note(s,item.title+" — "+item.hint,"danger");
 }
@@ -260,7 +282,7 @@ function repair(s,station){
  }
  if(s.energy<7)return {ok:false,reason:"Il faut 7 unités d'énergie pour réarmer un relais."};
  s.energy-=7;s.crisis.step++;s.stats.repairs++;
- if(s.crisis.step===3){
+ if(s.crisis.step===s.crisis.order.length){
   const id=s.crisis.id;s.crisesDone.push(id);s.crisis=null;s.data+=9;s.trust=clamp(s.trust+5,0,100);
   note(s,"CRISE MAÎTRISÉE — +9 données et +5 confiance.","success");
   return {ok:true,done:true};
@@ -268,9 +290,14 @@ function repair(s,station){
  return {ok:true,done:false};
 }
 function bailout(s){
- if(s.credits>=buildCost(s)||s.stock>0||s.queued>0||s.bailoutUsed||s.ended)return false;
- s.credits+=28000;s.trust=clamp(s.trust-12,0,100);s.bailoutUsed=true;
- note(s,"Prêt d'urgence : +28 000 crédits, confiance −12.","danger");return true;
+ if(s.stock>0||s.queued>0||s.bailoutCount>=2||s.ended)return false;
+ if(s.credits>=Math.max(buildCost(s),materialQuote(s).cost)&&s.materials>0)return false;
+ const second=s.bailoutCount===1;
+ s.credits+=second?85000:65000;s.trust=clamp(s.trust-(second?18:12),0,100);
+ s.bailoutUsed=true;s.bailoutCount++;
+ s.factions.public=clamp(s.factions.public-(second?8:4),0,100);
+ note(s,"Financement d'urgence n°"+s.bailoutCount+" ; soutien public réduit.","danger");
+ return true;
 }
 function tick(s,dt){
  if(!s.running||s.ended||s.scene)return [];
