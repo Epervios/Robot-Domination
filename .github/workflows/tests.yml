@@ -6,6 +6,7 @@ on:
       - feature/immersive-adventure-v2
       - prototype/robot-domination-v3
       - prototype/robot-domination-v4-odyssey
+      - main
   pull_request:
 
 permissions:
