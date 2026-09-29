@@ -11,6 +11,7 @@ Cette version repart d'une boucle de jeu interactive plutôt que d'un tableau de
 - **Atelier jouable** : fabriquer 1 ou 3 robots à la fois, choisir entre production normale, surcadence et sécurité, augmenter la capacité énergétique. La demande varie avec la conjoncture ; les robots sont facturés uniquement lorsqu'ils sont effectivement livrés.
 - **Trois crises tactiques** : intervenir en temps limité sur les relais **dans le bon ordre**. Un mauvais relais coûte du temps et augmente la menace. Un échec coupe la ligne pendant 18 secondes, avec perte de confiance.
 - **Quatre actes à embranchements** : le signal fantôme (4 livraisons), l'hôpital isolé (18), le pacte de NORA (38), la dernière décision (65). Les dialogues peuvent dépendre de vos premiers choix. Plusieurs épilogues.
+- **Enquête active au scanner** : après le premier acte, surveillez un oscilloscope dans l'onglet Missions et capturez une fréquence lorsqu'elle traverse la fenêtre verte (80 à 100 %). Une erreur impose sept secondes de recharge et augmente la menace. Trois fragments donnent des ressources, dévoilent des indices et peuvent débloquer un épilogue secret.
 - **Contrats avec échéance** : commandes hospitalières, mobilité et avant-poste orbital. Les récompenses dépendent des livraisons, les délais non tenus ont des conséquences.
 - **Son facultatif** (désactivé par défaut), sauvegarde locale, commande au clavier et au toucher, réduction des animations selon les préférences du système.
 
@@ -34,7 +35,7 @@ Puis ouvrez `http://localhost:8000`. Le jeu n'utilise ni framework, ni compte, n
 
 ## Architecture
 
-- `v3/core.js` : règles déterministes (économie, recherche, quatre actes, trois crises, trois appels d'offres, plusieurs fins), testables sans navigateur.
+- `v3/core.js` : règles déterministes (économie, recherche, quatre actes, trois crises, trois appels d'offres, scanner de fréquence, plusieurs fins), testables sans navigateur.
 - `v3/game.js` : scène Canvas, commandes et mise à jour ciblée du texte et des jauges. **Aucun `innerHTML` ni remplacement de carte dans le cycle de jeu.**
 - `v3/game.css` : mise en page spécifique au jeu, desktop et mobile, sans les anciennes feuilles CSS.
 - `tests/v3-core.test.cjs` : tests de l'économie, des actes, du puzzle, des contrats et des sauvegardes.
