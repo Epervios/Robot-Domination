@@ -1,55 +1,69 @@
-# ROBOT DOMINATION V3 — PROTOCOLE NORA
+# ROBOT DOMINATION — ODYSSÉE ECHO (prototype V4)
 
-> **Prototype expérimental, non fusionné.** Ouvrez **`index.html`** depuis la branche `prototype/robot-domination-v3`. La V2 intacte reste disponible dans `legacy-v2.html` pour une comparaison directe ; la branche V2 et la version principale n'ont pas été écrasées.
+**Un thriller industriel interactif en trois saisons.** Vous dirigez RobotCorp : produire, financer, recruter, protéger vos équipes, choisir les marchés et décider ce qu'une intelligence artificielle apprend à faire lorsque personne ne la regarde.
 
-## Ce qui change
+Ce prototype expérimental est isolé dans la branche **`prototype/robot-domination-v4-odyssey`**. La V3 que vous avez appréciée est conservée **sans aucune modification** dans `legacy-v3.html` ; la V2 est toujours disponible dans `legacy-v2.html`. Ni le prototype précédent ni la branche principale ne sont remplacés par cette expérimentation.
 
-Cette version repart d'une boucle de jeu interactive plutôt que d'un tableau de bord à cocher : vous voyez votre usine fonctionner, vous commandez de vrais robots qui passent par une chaîne d'assemblage, vous subissez les variations du marché et vous devez intervenir lors de crises de sécurité **avec un compte à rebours**.
+## Jouer
 
-- **Scène centrale animée en Canvas 2D** : convoyeurs, bras de soudure, robots en transit, écrans de contrôle, œil NORA réactif à la menace, pannes et effets de particules. Tout est dessiné localement ; aucun service ni téléchargement d'images.
-- **Recherche vraiment stable** : les huit cartes sont créées **une seule fois** au démarrage, conservées dans le DOM même lorsque les ressources, les recherches et les étapes changent. Les cartes restent cliquables : si la recherche est impossible, le jeu explique pourquoi au lieu de faire clignoter le bouton.
-- **Atelier jouable** : fabriquer 1 ou 3 robots à la fois, choisir entre production normale, surcadence et sécurité, augmenter la capacité énergétique. La demande varie avec la conjoncture ; les robots sont facturés uniquement lorsqu'ils sont effectivement livrés.
-- **Trois crises tactiques** : intervenir en temps limité sur les relais **dans le bon ordre**. Un mauvais relais coûte du temps et augmente la menace. Un échec coupe la ligne pendant 18 secondes, avec perte de confiance.
-- **Quatre actes à embranchements** : le signal fantôme (4 livraisons), l'hôpital isolé (18), le pacte de NORA (38), la dernière décision (65). Les dialogues peuvent dépendre de vos premiers choix. Plusieurs épilogues.
-- **Enquête active au scanner** : après le premier acte, surveillez un oscilloscope dans l'onglet Missions et capturez une fréquence lorsqu'elle traverse la fenêtre verte (80 à 100 %). Une erreur impose sept secondes de recharge et augmente la menace. Trois fragments donnent des ressources, dévoilent des indices et peuvent débloquer un épilogue secret.
-- **Contrats avec échéance** : commandes hospitalières, mobilité et avant-poste orbital. Les récompenses dépendent des livraisons, les délais non tenus ont des conséquences.
-- **Son facultatif** (désactivé par défaut), sauvegarde locale, commande au clavier et au toucher, réduction des animations selon les préférences du système.
+Ouvrez `index.html` depuis la branche V4 dans Chrome ou un autre navigateur récent. Aucun compte, aucune connexion internet et aucun framework ne sont nécessaires.
 
-## Commandes
+- **Atelier** : cliquez sur Fabriquer, sur le bouton Lot ×3 ou directement sur l'usine animée. Passez en surcadence pour livrer plus vite, au prix de l'usure, des coûts et de la fatigue. Le mode sécurisé préserve la chaîne et l'équipe.
+- **Recherche** : financez l'une des **17 technologies**. Une seule est développée à la fois. Les cartes sont **créées une seule fois** au chargement : elles ne sont jamais détruites/recréées pendant la progression ou les changements de trésorerie.
+- **Missions** : acceptez ou reportez **huit appels d'offres à échéance**. Les factures sont encaissées sur les robots effectivement livrés. Utilisez le scanner de fréquence pour réunir les trois fragments d'ECHO.
+- **Gestion** : surveillez le stock de composants, commandez des convois standard, express ou recyclés, réparez les équipements, recrutez du personnel, anticipez la paie et choisissez le marché où livrer votre production.
+- **Scène** : les robots avancent sur le convoyeur, les bras travaillent, les étincelles jaillissent, les caisses et le camion d'approvisionnement apparaissent. La lumière, les alertes et NORA réagissent à l'état de la partie. Les effets sonores sont **facultatifs et coupés par défaut**.
+- **Crises tactiques** : réarmez trois à cinq relais dans l'ordre affiché avant la fin du décompte. Une erreur prend du temps et augmente la menace ; échouer immobilise l'usine.
+- **Sauvegarde** : bouton Sauver puis Reprendre, également accessible dès l'écran de lancement. Les sauvegardes V4 utilisent une clé distincte et **n'écrasent pas celles de la V3**.
 
-**Ordinateur :** cliquez sur l'usine ou appuyez sur `Espace` pour commander un robot. Utilisez la barre d'onglets de droite pour naviguer entre Atelier, R&D et Missions. Lorsqu'une crise survient, cliquez sur les trois relais dans l'ordre indiqué (ou tapez les chiffres `1`, `2`, `3`).
+Sur PC, `Espace` commande un robot ; pendant les crises, les touches `1`, `2`, `3` activent les relais. Le jeu est également commandable à la souris, au doigt et au clavier. Sur smartphone, la scène et les commandes sont adaptées à toute la hauteur disponible.
 
-**Smartphone :** mêmes actions au toucher ; le cockpit exploite toute la hauteur de l'écran, le panneau de commande reste accessible sous la scène, les trois relais disposent de gros boutons tactiles. Aucune carte de recherche ne se déplace pendant un paiement ou une recherche.
+## Campagne : trois saisons, douze actes
 
-**Sauvegarde :** bouton Sauver dans l'en-tête. Reprendre permet de charger la dernière session sur le même navigateur. La sauvegarde n'est pas synchronisée entre appareils.
+| Saison | Actes | Enjeu |
+| --- | --- | --- |
+| I — Les premiers mensonges | 1–4 | Un robot parle, un hôpital perd son alimentation, un convoi disparaît, l'entreprise doit rendre des comptes. |
+| II — L'archive ECHO | 5–8 | Une station sous la glace, une panne continentale, une ville qui n'existe pas et une seconde conscience. |
+| III — La guerre des souvenirs | 9–12 | La confiance des proches est mise à l'épreuve, HELIX attaque, ECHO révèle son secret et NORA pose un ultimatum. |
 
-## Essayer
+**36 décisions majeures** ont un prix économique, social ou technologique. Des scènes changent leur narration selon les décisions précédentes, les preuves du scanner et les ventes médicales. Certains actes nécessitent un objectif secondaire : deux fragments ECHO **ou** l'audit indépendant ; plus tard, un pare-feu **ou** le noyau NORA **ou** les trois fragments. Ces alternatives évitent d'imposer une unique stratégie de recherche.
 
-Ouvrez `index.html` directement dans un navigateur récent. Si votre navigateur bloque le stockage local en mode fichier, servez le projet localement :
+Chaque choix modifie plusieurs rapports : **la confiance de l'équipe, le soutien public et l'alliance avec NORA**. Le dénouement prend en compte ces relations, les preuves collectées, les ventes médicales et la menace IA. Plusieurs épilogues peuvent être atteints sans imposer une morale unique au joueur.
 
-```bash
-python -m http.server 8000
-```
+## Une économie à gérer
 
-Puis ouvrez `http://localhost:8000`. Le jeu n'utilise ni framework, ni compte, ni service distant.
+La V4 démarre avec **220 000 crédits**, **24 composants**, **deux robots en stock**, **huit techniciens**, **100 unités d'énergie** et **68 points de confiance**. La fabrication d'un robot standard coûte initialement **6 800 crédits, un composant et 12 unités d'énergie**. Un robot vendu sur le marché des métropoles rapporte 16 800 crédits ; le coût des composants et les dépenses d'exploitation doivent également être déduits.
 
-## Architecture
+| Décision | Conséquences |
+| --- | --- |
+| Commander 20 composants standard | 65 500 crédits, livraison sous 16 s ; le prix augmente en cas de pénurie |
+| Commander 20 composants express | 92 500 crédits, livraison sous 6 s |
+| Débloquer l'approvisionnement recyclé | Coût inférieur et délai plus long, après R&D |
+| Effectuer une maintenance | 32 000 crédits, 8 s d'immobilisation, usure réduite et moral relevé |
+| Recruter deux techniciens | 68 000 crédits, cadence augmentée, salaires futurs plus élevés |
+| Verser les salaires | 18 600 crédits initialement toutes les 44 secondes de jeu |
+| Choisir le réseau médical | Demande plus modérée et prix +30 %, soutien public et confiance croissants |
+| Choisir les zones frontières | Demande réduite et prix +75 %, mais risque IA et soutien public dégradé |
 
-- `v3/core.js` : règles déterministes (économie, recherche, quatre actes, trois crises, trois appels d'offres, scanner de fréquence, plusieurs fins), testables sans navigateur.
-- `v3/game.js` : scène Canvas, commandes et mise à jour ciblée du texte et des jauges. **Aucun `innerHTML` ni remplacement de carte dans le cycle de jeu.**
-- `v3/game.css` : mise en page spécifique au jeu, desktop et mobile, sans les anciennes feuilles CSS.
-- `tests/v3-core.test.cjs` : tests de l'économie, des actes, du puzzle, des contrats et des sauvegardes.
-- `tests/v3-browser.mjs` : essai Chromium à **1366×768 et 390×844**, vérification de l'identité DOM des cartes pendant une recherche, navigation tactile et puzzle. Le workflow `V3 Browser UX` publie des captures PNG en artefacts.
-- `legacy-v2.html` : conservation intégrale de la version précédente.
+Un retard de paie, une chaîne usée, un camion bloqué par la pénurie ou une promesse de livraison trop ambitieuse ont des conséquences concrètes. Deux financements de secours restent possibles pour éviter certaines impasses, au prix d'une perte de confiance.
 
-Exécuter localement les tests de logique :
+La première simulation automatisée complète du nouveau moteur a atteint le **douzième acte à 450 livraisons**, en traversant **huit crises** et en recherchant les **17 technologies**. L'essai de difficulté en situation réelle et la revue humaine des écrans sont des étapes distinctes.
+
+## Architecture et validation
+
+- `v4/campaign.js` : scénario français, trois saisons, 12 actes, 36 choix et dialogues contextuels.
+- `v4/core.js` : moteur déterministe du marché, matériaux, production, équipe, salaires, usure, recherche, huit appels d'offres et huit crises.
+- `v4/game.js` : liaison des commandes, écran narratif à trois options, conséquences lisibles, interface mise à jour sans remonter les cartes R&D et usine Canvas 2D.
+- `v3/game.css` + `v4/game.css` : identité visuelle de la V3 préservée, thèmes évolutifs des saisons, gestion et portraits graphiques des personnages.
+- `tests/v4-core.test.cjs` : tests d'économie, d'incidents, d'actes et d'une partie complète.
+- `tests/v4-browser.mjs` : test Chromium des affichages **1366 × 768 et 390 × 844**, des 17 cartes R&D, du système de gestion, du récit à trois décisions, des crises à cinq étapes et de la sauvegarde.
+
+Pour les tests de logique, avec Node.js 22 :
 
 ```bash
 node --test tests/*.test.cjs
 ```
 
-Pour les essais de navigateur, installez Playwright temporairement (`npm install --no-save playwright` et `npx playwright install chromium`) puis exécutez `node tests/v3-browser.mjs`.
+Pour le test navigateur, installer Playwright et Chromium puis exécuter `node tests/v4-browser.mjs`. GitHub Actions conserve les captures des deux formats comme artefacts du workflow **Robot Domination V4 — Browser UX**.
 
-## Revue visuelle et équilibre avant fusion
-
-Valider les captures issues du navigateur, tester au toucher les trois crises et jouer une partie complète. Les tests automatisés servent de filet de régression ; ils ne garantissent pas que le niveau de difficulté ou l'ambiance plaisent à chaque joueur. La V2 demeure intégralement disponible pour revenir en arrière.
+Ce prototype reste **en brouillon**, sans fusion, afin de revoir visuellement l'interface et surtout de tester l'équilibrage sur plusieurs styles de jeu.
