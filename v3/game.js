@@ -17,7 +17,7 @@ const els=Object.fromEntries([
 "techInProgress","techFill","labStatus","contractTag","contractTitle",
 "contractDescription","contractUnits","contractDeadline","contractProgress",
 "contractFill","btnAccept","btnReject","intelText","opsFeed","toast",
-"launchScreen","btnLaunch","storyOverlay","storyAct","storyHeading","storyDescription",
+"launchScreen","btnLaunch","btnLaunchResume","storyOverlay","storyAct","storyHeading","storyDescription",
 "storyChoice0","storyChoice1","endOverlay","endingHeading","endingDescription",
 "endingStats","btnRestart","signalCount","signalClue","signalMarker","signalPrecision","signalCooldown","btnScan"].map(id=>[id,$(id)]));
 for(const [id,node]of Object.entries(els))if(!node)throw new Error("Élément manquant : "+id);
@@ -64,6 +64,7 @@ function save(silent=false){
  const copy={...s,running:false,sound:false};
  const ok=storage("write",JSON.stringify(copy));
  els.btnLoad.disabled=!ok;
+ els.btnLaunchResume.hidden=!ok;
  if(!silent)toast(ok?"Partie enregistrée sur cet appareil.":"Sauvegarde indisponible dans ce navigateur.",!ok);
  return ok;
 }
@@ -345,12 +346,13 @@ function repair(station){
 }
 function restart(){
  if(!window.confirm("Recommencer une nouvelle chronologie ? La sauvegarde actuelle sera remplacée."))return;
- s=E.create();storage("clear");els.btnLoad.disabled=true;
+s=E.create();storage("clear");els.btnLoad.disabled=true;els.btnLaunchResume.hidden=true;
  resetUi();els.launchScreen.hidden=false;render(true);
 }
 els.btnAudio.addEventListener("click",()=>setSound(!s.sound));
 els.btnSave.addEventListener("click",()=>save(false));
 els.btnLoad.addEventListener("click",load);
+els.btnLaunchResume.addEventListener("click",load);
 els.btnLaunch.addEventListener("click",()=>{
  els.launchScreen.hidden=true;s.running=true;lastSim=performance.now();
  E.note(s,"USINE INITIALISÉE — Vos quatre premières ventes déclencheront une transmission.");
@@ -607,6 +609,7 @@ function draw(now){
 }
 buildTechCards();
 els.btnLoad.disabled=!storage("read");
+els.btnLaunchResume.hidden=els.btnLoad.disabled;
 activate("atelier",false);
 render(true);
 requestAnimationFrame(draw);
