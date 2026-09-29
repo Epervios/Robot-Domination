@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/immersive-adventure-v2
+      - prototype/robot-domination-v3
   pull_request:
 
 permissions:
