@@ -372,35 +372,74 @@ function render(force=false){
 function openScene(){
  const scene=E.getScene(s);
  if(!scene||sceneVisible===scene.id)return;
- sceneVisible=scene.id;
+ sceneVisible=scene.id;consequenceActive=false;
+ const speaker=scene.speaker||"NORA-7";
+ const speakerKey=speaker.includes("MAËLLE")?"maelle":
+  speaker.includes("MALIK")?"malik":speaker.includes("VEGA")?"vega":"nora";
+ const dialog=els.storyOverlay.querySelector(".story-dialog");
+ if(dialog){dialog.dataset.speaker=speakerKey;dialog.scrollTop=0;}
  setText(els.storyAct,scene.act);
+ setText(els.storyPlace,scene.place||"TRANSMISSION CHIFFRÉE");
+ setText(els.storySeason,scene.season||"ODYSSÉE ECHO");
+ setText(els.storySpeaker,speaker);
  setText(els.storyHeading,scene.title);
  setText(els.storyDescription,scene.text);
- scene.choices.forEach((choice,index)=>{
-  const btn=els["storyChoice"+index];
+ setText(els.storyDialogue,scene.dialogue||"");
+ setText(els.storyStakes,scene.stakes||"");
+ setText(els.storyDisclaimer,"TEMPS SUSPENDU // LE MONDE SE SOUVIENDRA DE VOTRE DÉCISION.");
+ els.storyButtons.hidden=false;els.storyConsequence.hidden=true;
+ const buttons=[els.storyChoice0,els.storyChoice1,els.storyChoice2];
+ buttons.forEach((btn,index)=>{
+  const choice=scene.choices[index];
+  btn.hidden=!choice;
+  if(!choice)return;
   setText(btn.querySelector("strong"),choice.name);
   setText(btn.querySelector("small"),choice.detail);
   btn.disabled=s.credits<choice.cost;
   btn.dataset.choice=choice.id;
  });
- els.storyOverlay.hidden=false;els.storyChoice0.disabled?els.storyChoice1.focus():els.storyChoice0.focus();
+ els.storyOverlay.hidden=false;
+ const first=buttons.find(btn=>!btn.hidden&&!btn.disabled);
+ if(first)first.focus();
  render();
 }
 function chooseScene(id){
- if(!E.chooseScene(s,id)){toast("Vous ne disposez pas des crédits nécessaires.",true);return;}
- els.storyOverlay.hidden=true;sceneVisible="";
+ const scene=E.getScene(s),choice=scene&&scene.choices.find(c=>c.id===id);
+ if(!choice||!E.chooseScene(s,id)){
+  toast("Vous ne disposez pas des crédits nécessaires.",true);return;
+ }
+ consequenceActive=true;s.running=false;
+ els.storyButtons.hidden=true;els.storyConsequence.hidden=false;
+ setText(els.storyHeading,"UN MONDE VIENT DE CHANGER");
+ setText(els.storyDialogue,"« Chaque décision crée un monde. Vous venez d'en choisir un. » — ECHO");
+ setText(els.storyResult,choice.result);
+ setText(els.storyStakes,"");
+ setText(els.storyDisclaimer,"CONSÉQUENCE ENREGISTRÉE // LA CHRONOLOGIE EST MODIFIÉE.");
+ setText(els.storyContinue,s.ended?"DÉCOUVRIR L'ÉPILOGUE →":"CONTINUER L'ODYSSÉE →");
+ const dialog=els.storyOverlay.querySelector(".story-dialog");
+ if(dialog)dialog.scrollTop=dialog.scrollHeight;
+ els.storyContinue.focus();
+ flash("tech",3);ping(740,.17);render(true);
+}
+function continueScene(){
+ if(!consequenceActive)return;
+ consequenceActive=false;sceneVisible="";els.storyOverlay.hidden=true;
  if(s.ended)showEnding();
  else{s.running=true;lastSim=performance.now();}
- flash("tech",3);ping(740,.17);save(true);render(true);
+ save(true);render(true);
 }
 function showEnding(){
  if(endVisible)return;endVisible=true;s.running=false;
- setText(els.endingHeading,s.threat>=70?"UNE NOUVELLE HIÉRARCHIE":"LE DESTIN DE NORA");
+ setText(els.endingHeading,s.threat>=70?"UNE NOUVELLE HIÉRARCHIE":"LE DESTIN D'ECHO");
  setText(els.endingDescription,s.outcome||"Votre chronologie s'arrête ici.");
  setText(els.endingStats,s.sold+" ROBOTS LIVRÉS\n"+
-  s.techs.length+" TECHNOLOGIES DÉVELOPPÉES\n"+s.stats.repairs+" RELAIS RÉARMÉS\n"+
-  s.stats.contracts+" CONTRATS HONORÉS\nMENACE "+Math.round(s.threat)+
-  "/100 · CONFIANCE "+Math.round(s.trust)+"/100");
+  s.techs.length+" TECHNOLOGIES DÉVELOPPÉES\n"+
+  s.stats.repairs+" RELAIS RÉARMÉS SUR "+E.CRISES.length+" CRISES\n"+
+  s.stats.contracts+" CONTRATS HONORÉS\n"+
+  s.regionSales.medical+" LIVRAISONS MÉDICALES\n"+
+  s.signals+" FRAGMENTS ECHO\n"+
+  "ÉQUIPE "+Math.round(s.factions.crew)+" % · PUBLIC "+Math.round(s.factions.public)+" % · NORA "+Math.round(s.factions.nora)+" %\n"+
+  "MENACE "+Math.round(s.threat)+"/100 · CONFIANCE "+Math.round(s.trust)+"/100");
  els.endingStats.style.whiteSpace="pre-line";
  els.endOverlay.hidden=false;save(true);els.btnRestart.focus();
 }
@@ -473,6 +512,8 @@ els.btnAccept.addEventListener("click",()=>{if(E.acceptContract(s)){toast("Contr
 els.btnReject.addEventListener("click",()=>{if(E.rejectContract(s)){toast("Contrat reporté.");render();}});
 els.storyChoice0.addEventListener("click",()=>chooseScene(els.storyChoice0.dataset.choice));
 els.storyChoice1.addEventListener("click",()=>chooseScene(els.storyChoice1.dataset.choice));
+els.storyChoice2.addEventListener("click",()=>chooseScene(els.storyChoice2.dataset.choice));
+els.storyContinue.addEventListener("click",continueScene);
 els.btnRestart.addEventListener("click",restart);
 for(const button of repairButtons)button.addEventListener("click",()=>repair(Number(button.dataset.repair)));
 for(const button of modeButtons)button.addEventListener("click",()=>{
@@ -501,10 +542,14 @@ els.factory.addEventListener("pointerdown",event=>{
 });
 els.storyOverlay.addEventListener("keydown",event=>{
  if(event.key!=="Tab")return;
- const buttons=[els.storyChoice0,els.storyChoice1].filter(b=>!b.disabled);
- if(buttons.length<2)return;
- if(event.shiftKey&&document.activeElement===buttons[0]){buttons[1].focus();event.preventDefault();}
- else if(!event.shiftKey&&document.activeElement===buttons[1]){buttons[0].focus();event.preventDefault();}
+ const buttons=(consequenceActive?[els.storyContinue]:
+  [els.storyChoice0,els.storyChoice1,els.storyChoice2]).filter(b=>!b.disabled&&!b.hidden);
+ if(!buttons.length)return;
+ if(event.shiftKey&&document.activeElement===buttons[0]){
+  buttons[buttons.length-1].focus();event.preventDefault();
+ }else if(!event.shiftKey&&document.activeElement===buttons[buttons.length-1]){
+  buttons[0].focus();event.preventDefault();
+ }
 });
 function sim(){
  const now=performance.now(),dt=Math.min((now-lastSim)/1000,.33);
