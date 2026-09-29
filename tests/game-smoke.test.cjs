@@ -7,7 +7,7 @@ const rules = require("../adventure-engine.js");
 const strategy = require("../strategy-engine.js");
 
 const root = path.join(__dirname, "..");
-const page = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const page = fs.readFileSync(path.join(root, "legacy-v2.html"), "utf8");
 const core = page.match(/<script>([\s\S]*?)<\/script>/)[1];
 const ui = fs.readFileSync(path.join(root, "adventure-ui.js"), "utf8");
 const strategyUI = fs.readFileSync(path.join(root, "strategy-ui.js"), "utf8");
