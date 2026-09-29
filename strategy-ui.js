@@ -15,6 +15,8 @@
   const contractProgress = document.getElementById("contractProgress");
   const contractBar = document.getElementById("contractBar");
   const marketTime = document.getElementById("marketCountdown");
+  const gridButton = document.getElementById("btnGridUpgrade");
+  const gridRate = document.getElementById("gridEnergyRate");
 
   function render() {
     const s = api.ensure(state),market = api.market(state);
@@ -23,6 +25,13 @@
     marketLabel.title = market.description;
     marketTime.textContent = "Changement dans ~" + Math.ceil(Math.max(0,s.nextMarketAt-s.elapsed)) + " s de jeu";
     modeHint.textContent = remaining > 0 ? "Réglage verrouillé : " + remaining + " s" : "Réglage disponible";
+    const grid=api.nextGridUpgrade(state);
+    gridRate.textContent="Production : "+api.energyRegen(state)+" énergie/s";
+    gridButton.hidden=!grid;
+    if(grid){
+      gridButton.disabled=state.money<grid.cost || !!state.gameEnded;
+      gridButton.textContent="Réseau : "+grid.title+" ("+grid.cost.toLocaleString("fr-CH")+" $)";
+    }
     for (const btn of buttons) {
       const selected = btn.dataset.operationMode === s.mode;
       btn.classList.toggle("is-selected",selected);
@@ -69,6 +78,11 @@
       updateUI();
     });
   }
+  gridButton.addEventListener("click",()=>{
+    if(state.gameEnded || !api.upgradeGrid(state))return;
+    addMessage("ÉNERGIE : réseau renforcé, production portée à "+api.energyRegen(state)+" énergie/s.");
+    updateUI();
+  });
   contractAccept.addEventListener("click",() => {
     if (state.gameEnded || !api.sign(state)) return;
     addMessage("CONTRAT : mission acceptée. La facturation est effectuée à chaque livraison.");
