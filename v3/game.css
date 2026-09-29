@@ -283,3 +283,27 @@ button:disabled{opacity:.5;cursor:not-allowed}
  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
  transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* NORA / oscilloscope interactif : les indices se gagnent par synchronisation. */
+.signal-console{border:1px solid #4a716f;background:linear-gradient(140deg,#163738,#10272f);padding:12px;margin:16px 0 12px}
+.signal-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:center;font:.61rem var(--mono);color:#91c4ba;letter-spacing:.06em}
+.signal-head strong{color:var(--acid);font-size:.62rem}
+.signal-console p{font:.69rem/1.45 var(--mono);color:#b8d3c5;min-height:36px;margin:12px 0}
+.signal-meter{height:21px;position:relative;background:repeating-linear-gradient(90deg,#183a40 0,#183a40 9%,#204b4b 9%,#204b4b 10%);
+ border:1px solid #547c7a;overflow:visible;margin:13px 2px 6px}
+.signal-safe{position:absolute;left:80%;right:0;top:0;bottom:0;background:#aee67640;border-left:2px solid var(--acid)}
+.signal-marker{position:absolute;left:0%;top:-5px;bottom:-5px;width:3px;background:#f3ffba;transform:translateX(-50%);
+ box-shadow:0 0 10px #d7ffaa;transition:left .075s linear;z-index:2}
+.signal-details{display:flex;align-items:center;justify-content:space-between;gap:5px;
+ font:.55rem var(--mono);color:#afc6bc}
+.signal-console button{margin-top:10px;background:#d3ed87;color:#162b25;border:0;
+ width:100%;padding:10px;font:850 .76rem var(--mono);display:flex;justify-content:space-between;align-items:center}
+.signal-console button span{font-size:1.18rem}
+.signal-console button:hover:not(:disabled){background:#f0ffbb}
+.signal-console button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:860px){
+ .signal-console{margin:9px 0 10px;padding:9px}
+ .signal-console p{min-height:0;margin:6px 0;font-size:.63rem}
+ .signal-meter{height:17px;margin:8px 1px 5px}
+ .signal-console button{padding:8px;font-size:.66rem}
+}
