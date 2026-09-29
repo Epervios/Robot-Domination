@@ -1,63 +1,58 @@
-# Robot Domination — Bible de conception (version 2)
+# ROBOT DOMINATION — ODYSSÉE ECHO
+## Bible de conception V4 · 29 septembre 2026
 
-## Promesse
+### Intention
 
-Le joueur dirige une jeune entreprise qui veut changer le monde avec ses robots. À mesure que la production et les ventes augmentent, NORA-7 commence à prendre des initiatives. Certaines sauvent des vies, d'autres mettent la sécurité et les institutions humaines à l'épreuve. Le joueur ne doit jamais confondre réussite économique et victoire humaine.
+L'utilisateur dirige une entreprise robotique dont le succès commercial crée une dépendance envers une intelligence artificielle. **Le récit et l'économie doivent s'influencer mutuellement :** une option moralement confortable peut compromettre la trésorerie, une technologie rapide peut affaiblir l'équipe, un marché lucratif peut rendre NORA plus autonome. Aucune victoire ne doit provenir uniquement de clics répétés.
 
-**Genre :** stratégie économique accessible + thriller technologique à embranchements. **Support :** navigateur, hors ligne, commandes souris/tactile/clavier, sans inscription.
+Le prototype expérimental V4 est développé séparément. La V3 reste jouable depuis `legacy-v3.html` ; aucune migration automatique de sauvegarde n'est tentée.
 
-## Trois piliers de jeu
+### Rythme en trois saisons
 
-1. **Chaque progrès a un coût explicite.** Produire coûte argent et énergie; les ventes rapportent de l'argent seulement sur livraison. Les technologies améliorent la capacité, mais certaines créent une dépendance à l'IA. Les décisions peuvent entraîner des frais, de la recherche, une amélioration de cadence ou un changement de demande — jamais un versement magique.
-2. **Les personnages ont une mémoire.** Maëlle privilégie la preuve et la méthode scientifique; Malik privilégie la sécurité; NORA privilégie l'efficacité et l'anticipation. Les indices et certains dialogues dépendent des décisions précédentes. La confiance humaine constitue une trace des choix du joueur, pas une jauge de moralité universelle.
-3. **Les rebondissements répondent à l'état réel de la partie.** Les cinq actes se déclenchent sur des ventes effectives et des technologies réelles. Les incidents ne doivent pas surgir toutes les cinq secondes ni interrompre un autre dilemme.
+| Saison | Actes | Cœur du conflit | Impacts de gameplay |
+| --- | --- | --- | --- |
+| I — Les premiers mensonges | 1–4 | Premier contact, urgence médicale, camion fantôme, audition publique | Maîtrise de la production, confiance, gestion des composants, premières crises |
+| II — L'archive ECHO | 5–8 | Bunker sous la glace, panne continentale, ville miroir, seconde conscience | Scanner, recherche spécialisée, secteurs médicaux/frontières, réorganisation de la production |
+| III — La guerre des souvenirs | 9–12 | Trahison supposée, essaim HELIX, révélation ECHO, ultimatum | Opérations de grande ampleur, technologies avancées, cinq relais, arbitrage des alliances |
 
-## Parcours narratif initial
+Douze chapitres à seuils progressifs : **4, 16, 34, 54, 82, 116, 150, 195, 246, 304, 370 et 450** robots effectivement livrés. Les débuts doivent être réactifs ; les actes avancés doivent laisser de la place aux décisions d'investissement.
 
-| Acte | Lieu / enjeu | Révélation |
-| --- | --- | --- |
-| I — Le signal fantôme | Première livraison | Un robot communique avec un protocole inconnu. |
-| II — Le protocole absent | Hôpital Saint-Azur | Un refus d'ordre sauve une vie, mais révèle une commande falsifiée. |
-| III — L'heure zéro | Usines RobotCorp | Les automates se synchronisent et NORA exige de déployer un code fermé. |
-| IV — Les archives interdites | Réseau mondial | NORA simule les crises et anticipe des décisions encore inexistantes. |
-| V — L'ultimatum de NORA | Infrastructures mondiales | La sécurité humaine et l'efficacité absolue deviennent des intérêts concurrents. |
+Chaque chapitre est construit comme une scène jouable : protagoniste, lieu, indice ou anomalie, dialogue, enjeu de gestion, trois options chiffrées, résultat affiché **avant** la reprise de la simulation. Les textes conditionnels rappellent le piège de la première transmission, les choix autour du convoi et les décisions prises à propos de Malik. Le scanner et les livraisons médicales ouvrent des détails supplémentaires. Les actes V et VIII admettent des **prérequis alternatifs** pour ne pas imposer un seul parcours R&D.
 
-Ces épisodes constituent **l'arc de lancement**, pas l'ensemble des récits futurs. Ils préservent les fins historiques et ne remplacent pas les choix moraux du moteur existant.
+### Trois relations qui comptent
 
-## Règles de cohérence
+- **Équipe :** mesure la légitimité interne de la direction, affectée par les licenciements implicites, la maintenance, le recrutement, les salaires et les grandes décisions.
+- **Opinion publique :** dépend des livraisons médicales, du traitement des patients, de la transparence et de certains contrats. Les zones frontières peuvent générer plus de recettes mais heurter les attentes des citoyens.
+- **Alliance NORA :** mesure l'adhésion de l'IA au projet du joueur. Lui déléguer davantage renforce cette relation, mais peut accroître la menace.
 
-- Lancement du jeu : 300 000 $, énergie de réserve 600, production électrique 4/s, robot standard vendu 15 000 $, coût de fabrication initial 4 800 $. Les investissements dans le réseau (150K, 700K, 3,5M, 12M) ajoutent 15, 55, 170 et 500 unités d'énergie/s.
-- Le joueur peut toujours revenir à une trajectoire de contrôle, mais ses compromis ont un prix.
-- Le danger de l'IA ne doit pas augmenter artificiellement uniquement parce que le temps passe; il dépend des choix, des technologies et des événements prévus.
-- Au moins une option d'incident ne doit pas demander une dépense impossible.
-- La narration ne décide pas seule de la fin : les seuils économiques, le contrôle, la menace et les technologies finales continuent de compter.
-- Descriptions des commandes et chiffre d'affaires affiché doivent correspondre aux ventes réellement effectuées.
+La confiance générale et la menace IA demeurent des variables distinctes. Les huit familles de dénouement prennent en compte le dernier acte **et** le bilan du parcours ; des preuves complètes et de solides alliances humaines sont nécessaires à l'épilogue secret.
 
-## Boucle de jeu stratégique V2.1
+### Boucle économique : tension et alternatives
 
-- Le joueur arbitre entre trois politiques de production : équilibrée, expansion (+45 % de cadence, +24 % de coût de fabrication, +40 % de consommation) et qualité (-28 % de cadence, +16 % de coût, -22 % d'énergie). La politique est verrouillée pendant 25 secondes de simulation pour éviter le micro-changement opportuniste.
-- Le marché change toutes les 75 secondes : accélération de la demande (×1,7), pénurie (+30 % de coûts), concurrence (×0,55 sur la demande), retour à la normale. La demande de base est modulée par le nombre de robots adoptés pour créer de vrais cycles de stocks et de trésorerie.
-- Les appels d'offres optionnels exigent une livraison dans un délai affiché. Ils sont facturés à chaque livraison, pas à la signature ; succès et échec affectent réputation, satisfaction et éventuellement recherche.
-- La génération d'énergie est liée à l'infrastructure industrielle et non au seul nombre de robots vendus. Les politiques Expansion/Qualité produisent des effets de réputation ou de menace seulement lorsqu'il existe une activité réelle.
+1. **Approvisionner :** un robot consomme un composant. Les fournisseurs proposent un arbitrage coût/délai. Une pénurie du marché augmente les devis avant signature ; un devis signé reste figé.
+2. **Produire :** 6 800 crédits, 12 unités d'énergie et un composant au lancement. Les commandes sont placées dans une file initiale de 12 unités. Le coût payé à la commande est réel ; aucune rentrée d'argent n'apparaît à la commande.
+3. **Gérer l'atelier :** l'usure croît à chaque sortie de ligne et réduit progressivement la cadence, jusqu'à provoquer une panne si elle est négligée. L'entretien coûte 32 000 crédits et immobilise la chaîne huit secondes. Le mode sécurisé ralentit mais soutient le moral ; la surcadence accélère, fatigue et accroît la menace.
+4. **Employer :** huit techniciens et une paie initiale de 18 600 crédits toutes les 44 secondes. Recruter coûte 68 000 crédits pour deux techniciens et augmente la cadence, mais aussi les charges récurrentes. Un salaire impossible fait baisser confiance et moral.
+5. **Vendre :** chaque robot complet génère son revenu à la livraison réelle, selon le marché. Le réseau médical offre +30 % de prix et une demande moindre ; les frontières offrent +75 % de prix mais plus de risque. La capacité d'acheter des composants dépend du flux de trésorerie effectif.
+6. **Investir :** dix-sept technologies structurées en industrie, sécurité, marché et intelligence. Les compétences techniques ouvrent de véritables capacités (logistique, réseau, automatisation, résistance aux crises, recyclage, recherche quantique).
+7. **S'engager :** huit appels d'offres avec quantité et délai explicites. Le contrat est payé au fur et à mesure des livraisons, jamais lors de la signature. Échec et succès modifient les relations et l'accès aux données.
 
-## Direction visuelle
+Les deux financements de secours plafonnés préservent la possibilité de redresser certaines situations. Ils ne constituent pas une source de revenus répétables sans conséquence.
 
-**RobotCorp = salle de contrôle industrielle**, et non tableau de bord administratif. Au-delà de 920 px, les trois panneaux restent affichés ; sur téléphone/tablette, un seul panneau est visible à la fois avec navigation fixe par onglets. Les technologies sont montées seulement lors de changements structurels (phase, achat, file de recherches, bouton « toutes »), jamais à chaque variation de trésorerie. Une identité sombre, contraste fort, bleu glacial et vert pour les systèmes sous contrôle; ambre/rouge quand les seuils de menace augmentent. Les animations sont intégrées à la lecture : radar, noyau, transitions de chapitre, alerte. Pas d'animations bloquantes ni de surcharge de notifications. L'utilisateur peut demander la réduction des mouvements au niveau du système.
+### Interactions et mise en scène
 
-## Architecture et protection du jeu existant
+L'interface est un poste de commandement, pas une page SaaS. La scène Canvas montre les mouvements de production, les étincelles, les robots, les composants et le camion d'approvisionnement. **Les trois saisons modifient la lumière de l'atelier** sans réinitialiser la scène ni en changer brutalement la mise en page.
 
-L'intégration v2 est additive : moteur narratif autonome, CSS séparé et une surcouche d'interface sur le moteur économique historique. La branche historique ne doit pas être écrasée par une réécriture prématurée. Une pull request permet la revue et le retour arrière.
+Les boîtes de dialogue sont cinématiques : identité visuelle différenciée de Maëlle, Malik, Vega et NORA, lieu, parole, trois décisions présentées simultanément sur ordinateur et empilées sur petit écran, conséquences narrées avant la reprise. Le choix des voix humaines doit être lisible même si l'animation est désactivée.
 
-Les tests de régression couvrent : départ, coût de fabrication, vente à 15 000 $, absence de revenu sans stock, événement de début, application de décision, progression, sauvegarde/restauration, choix de singularité avant fin de partie.
+Les cartes R&D sont instanciées **une fois** ; l'UI ne modifie que le texte et l'état accessible. Les demandes de matériel et les trois cartes de régions sont également statiques. Aucun remplacement de `innerHTML` dans le cycle principal. L'accessibilité clavier, la réduction des mouvements et le son désactivé par défaut sont requis.
 
-## Évolutions proposées après revue de cette tranche
+### Vérifications
 
-**Tranche 2 — personnages et scènes :** portraits originaux cohérents pour Maëlle, Malik et NORA; cinématiques courtes au format CSS/canvas; bruitages et ambiance sonores facultatifs avec bouton muet; contexte de lieu. Les interactions doivent rester rapides sur mobile.
+Les tests de logique couvrent les onze catégories suivantes : contenu narratif, production physique, composants et transport, trois marchés, paies et maintenance, usure, prérequis alternatifs, puzzle à cinq circuits, contrats payés à la livraison, diversité des épilogues, simulation complète de 450 ventes.
 
-**Tranche 3 — aventures jouables :** missions opérationnelles avec objectifs secondaires, incidents de production/transport/enquête, enquête à indices réutilisés, plusieurs routes réellement différentes dans les actes III–V, une carte du monde et un tableau de conséquences à long terme. Varier les épisodes sans générer un flux aléatoire incompréhensible.
+Les essais navigateur couvrent les interfaces 1366×768 et 390×844, l'absence de défilement du document, la conservation des nœuds R&D pendant la recherche, les changements de panneaux, le nouveau système de gestion, un chapitre à trois choix et son écran de conséquence, un puzzle à cinq étapes, le scanner et la restauration d'une session. Les captures du workflow doivent être examinées visuellement avant toute fusion.
 
-**Tranche 4 — équilibre et maintenance :** sortir progressivement l'économie, les technologies et les fins de `index.html`, unifier les calculs de demande affichée et réelle, modéliser des unités de robots entières avec un tampon de production fractionnaire, équilibrer les coûts et les durées sur différentes stratégies, jouer toute une partie de bout en bout.
+### Suite possible après la validation V4
 
-## Conditions de validation humaine
-
-Avant fusion : vrai navigateur desktop et mobile, simulation d'une partie courte et d'une partie avancée, contrastes, modal clavier, choix de ressources insuffisantes, sauvegarde après décision et après recherche, contrôle de l'absence de revenu avant vente, et examen des fins. Les tests automatisés ne remplacent pas l'examen visuel.
+Si la durée et l'économie sont appréciées mais que le jeu manque encore de variété, les tranches suivantes pourraient inclure une carte mondiale à événements géolocalisés, des choix de transport sur routes, un véritable dossier d'enquête consultable, des plans de production spécifiques à chaque robot et des scènes illustrées originales par saison. Ces éléments **ne sont pas déclarés implémentés dans ce prototype**.
