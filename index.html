@@ -63,7 +63,7 @@
     <div class="stats" aria-label="Indicateurs principaux">
       <div class="stat" title="Robots vendus : jalons de campagne.">🤖 Ventes<br><b id="robots">0</b></div>
       <div class="stat">💰 Trésorerie<br><b id="money">300K</b></div>
-      <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="100 énergie : 10 000 $" aria-label="Acheter 100 unités d'énergie">+</button><br><b id="energy">5K</b></div>
+      <div class="stat">⚡ Énergie <button id="btnBuyEnergy" title="100 énergie : 10 000 $" aria-label="Acheter 100 unités d'énergie">+</button><br><b id="energy">600</b></div>
       <div class="stat">🧠 Recherche<br><b id="research">0</b></div>
       <div class="stat">📦 Stock<br><b id="stock">0</b></div>
       <div class="stat">⚠️ Menace IA<br><b id="aithreat">0</b></div>
@@ -109,6 +109,11 @@
             <button type="button" data-operation-mode="balanced" class="is-selected" aria-pressed="true"><strong>Équilibré</strong><small>Cadence standard</small></button>
             <button type="button" data-operation-mode="surge" aria-pressed="false"><strong>Expansion</strong><small>+45 % cadence</small></button>
             <button type="button" data-operation-mode="precision" aria-pressed="false"><strong>Qualité</strong><small>Fiabilité accrue</small></button>
+          </div>
+          <div class="grid-energy-upgrade">
+            <span>ÉNERGIE INDUSTRIELLE</span>
+            <b id="gridEnergyRate">Production : 4 énergie/s</b>
+            <button type="button" class="actionbtn secondary-action" id="btnGridUpgrade">Renforcer le réseau</button>
           </div>
           <div class="market-banner"><span>ÉTAT DU MARCHÉ</span><b id="marketCondition">Marché stable</b><small id="marketCountdown">Évolution prochaine</small></div>
           <div class="contract-board">
@@ -324,7 +329,7 @@ let lastCanActState = true;
 
 function resetGame(){
   state = {
-    phase:0, robots:0, energy:5000, money:300000,
+    phase:0, robots:0, energy:600, money:300000,
     humans:7800000000,
     aithreat:0, playercontrol:100, research:0, market:0, reputation:50,
     baseProductionRate: 0.15,
@@ -438,8 +443,10 @@ function getMarketModifiers() {
     ? window.RobotStrategy.market(state) : {demand:1,cost:1,energy:1};
 }
 function getDemandPerSecond() {
-  return Math.max(.02,(state.baseDemand+Math.max(0,state.reputation)/5) *
-    state.demandModifier * (1+Math.max(0,state.satisfaction)/150) * getMarketModifiers().demand);
+  const adoption = .27 + .08 * Math.log10(1 + Math.max(0,state.robots));
+  return Math.max(.25,(state.baseDemand+Math.max(0,state.reputation)/5) *
+    state.demandModifier * (1+Math.max(0,state.satisfaction)/150) *
+    adoption * getMarketModifiers().demand);
 }
 
 function getCurrentProductionCost() {
@@ -919,7 +926,8 @@ function gameLoop(){
   }
 
   // === Énergie ===
-  let energyRegenPerSec = Math.min(state.robots * 0.1 + 50, 1500); // Base regen +50, Plafond regen 1500
+  let energyRegenPerSec = typeof window!=="undefined" && window.RobotStrategy
+    ? window.RobotStrategy.energyRegen(state) : 4; // Énergie fournie par le réseau industriel.
   state.energy = Math.min(state.energy + energyRegenPerSec * dt, 250000);
   state.energy = Math.max(0, state.energy);
 
