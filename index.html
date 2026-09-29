@@ -429,14 +429,27 @@ function availableTechs(){
 }
 function canAct(){ return state.playercontrol>0 && !state.gameEnded; }
 
+function getStrategicPolicy() {
+  return typeof window!=="undefined" && window.RobotStrategy
+    ? window.RobotStrategy.policy(state) : {rate:1,cost:1,energy:1};
+}
+function getMarketModifiers() {
+  return typeof window!=="undefined" && window.RobotStrategy
+    ? window.RobotStrategy.market(state) : {demand:1,cost:1,energy:1};
+}
+function getDemandPerSecond() {
+  return Math.max(.02,(state.baseDemand+Math.max(0,state.reputation)/5) *
+    state.demandModifier * (1+Math.max(0,state.satisfaction)/150) * getMarketModifiers().demand);
+}
+
 function getCurrentProductionCost() {
-  return state.productionCostPerRobot * state.productionCostModifier;
+  return state.productionCostPerRobot * state.productionCostModifier * getStrategicPolicy().cost * getMarketModifiers().cost;
 }
 function getCurrentEnergyCost() {
-  return state.baseEnergyCostPerRobot * state.energyCostModifier;
+  return state.baseEnergyCostPerRobot * state.energyCostModifier * getStrategicPolicy().energy * getMarketModifiers().energy;
 }
 function getCurrentProductionRate() {
-    return (state.baseProductionRate + state.productionRateBonus) * state.efficiency;
+    return (state.baseProductionRate + state.productionRateBonus) * state.efficiency * getStrategicPolicy().rate;
 }
 
 function updateObjective(){
@@ -537,7 +550,7 @@ function updateUI(){
     document.getElementById('manualProgressDisplayContainer').style.display = 'none';
   }
 
-  let actualDemandPerSecond = Math.max(0.02, (state.baseDemand + Math.max(0, state.reputation)/5) * state.demandModifier * (1 + Math.max(0, state.satisfaction)/150));
+  let actualDemandPerSecond = getDemandPerSecond();
   demand.textContent = `${formatN(actualDemandPerSecond)}/sec`;
   specialorders.textContent = state.specialOrders.length
     ? state.specialOrders.map(o=>`${o.qte} (${formatN(o.restant)} restants)`).join(", ")
@@ -1041,7 +1054,7 @@ function gameLoop(){
 
   // === Ventes et Demande ===
   // console.log(`SALES Entry: Stock=${state.stock.toFixed(2)}, Money=${formatN(state.money)}, Robots=${formatN(state.robots)}, DemandMod=${state.demandModifier}, BaseDemand=${state.baseDemand}, Rep=${state.reputation}, Sat=${state.satisfaction}`);
-  let demandPerSecond = Math.max(0.02, (state.baseDemand + (Math.max(0, state.reputation) / 5)) * state.demandModifier * (1 + Math.max(0, state.satisfaction) / 150) );
+  let demandPerSecond = getDemandPerSecond();
   let actualDemandInDt = demandPerSecond * dt;
   // console.log(`SALES Demand Calc: demand/sec=${demandPerSecond.toFixed(3)}, actualDemandInDt=${actualDemandInDt.toFixed(3)} (dt=${dt.toFixed(3)})`);
 
