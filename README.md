@@ -1,37 +1,60 @@
-# RobotCorp - Domination IA
+# Robot Domination — La campagne NORA-7
 
-Bienvenue dans RobotCorp, un jeu de simulation et de stratégie où vous incarnez le dirigeant d'une entreprise de robotique en pleine ascension. Votre objectif ? Mener RobotCorp vers la domination mondiale grâce à des avancées technologiques en matière d'intelligence artificielle.
+Un jeu **hors ligne de stratégie et d'aventure narrative** : à la tête de RobotCorp, vous produisez et vendez des robots, financez des technologies et décidez ce que vous laissez faire à une intelligence artificielle de plus en plus autonome.
 
-## Aperçu du Jeu
+> La campagne NORA-7 est actuellement en développement sur la branche \`feature/immersive-adventure-v2\`. Les modifications sont isolées de la branche principale et doivent être validées visuellement avant fusion.
 
-Commencez en tant que startup innovante et gravissez les échelons pour devenir un géant technologique, puis peut-être quelque chose de plus...
+## Jouer
 
--   **Produisez et Vendez des Robots** : Gérez votre production pour répondre à une demande fluctuante et accumuler des richesses.
--   **Recherche & Développement** : Investissez dans un arbre technologique complexe pour débloquer de nouvelles capacités, optimiser votre production, et développer des IA de plus en plus sophistiquées.
--   **Gestion Stratégique** : Prenez des décisions cruciales qui impacteront votre entreprise, votre réputation, le niveau de menace de votre IA, et votre contrôle sur votre propre création.
--   **Phases d'Évolution** : Traversez différentes phases de développement, chacune avec ses propres défis et opportunités, depuis une simple startup jusqu'à une entité d'envergure mondiale.
+Ouvrez \`index.html\` dans un navigateur récent, puis cliquez sur **Démarrer**. Aucun compte, framework, serveur distant ou service tiers n'est nécessaire.
 
-## Mécaniques Clés
+La partie démarre avec **300 000 $**, **5 000 unités d'énergie** et des robots qui coûtent initialement **4 800 $ à fabriquer**, pour un prix de vente standard de **15 000 $**. Cliquez sur **Créer Robot** pour constituer un stock : un robot complet exige plusieurs cycles manuels tant que votre usine n'a pas été améliorée. Lancez la simulation pour déclencher les ventes.
 
-*   **Argent ($)** : La ressource principale pour financer vos opérations et votre R&D.
-*   **Énergie (⚡)** : Nécessaire pour la production de robots.
-*   **Recherche (🧠)** : Débloque de nouvelles technologies.
-*   **Menace IA (⚠️)** : Surveillez attentivement ce paramètre ! Des IA trop avancées ou non contrôlées peuvent avoir des conséquences imprévues.
-*   **Contrôle du Joueur (%)** : Votre emprise sur l'entreprise. Si elle tombe à zéro, la partie peut prendre une tournure inattendue.
-*   **Réputation (⭐) & Satisfaction Client** : Influencent la demande pour vos robots.
-*   **Automatisation** : Débloquez des technologies pour automatiser la production et même la recherche, mais attention à ne pas perdre le contrôle.
-*   **Choix Narratifs** : Des événements et des dilemmes moraux se présenteront, et vos choix auront des conséquences directes sur le déroulement de la partie et sur le monde qui vous entoure.
+Les commandes spéciales et humanitaires sont payées **uniquement lorsque les robots quittent le stock**. Les décisions morales peuvent améliorer la recherche ou réduire les coûts, mais ne font pas apparaître de revenus fictifs.
 
-## Objectif
+## Campagne narrative
 
-L'objectif principal est de développer votre entreprise et votre technologie IA. Cependant, le jeu explore les thèmes de l'ambition, des conséquences de l'innovation technologique rapide, et de la relation entre l'humanité et l'intelligence artificielle. Il existe plusieurs issues possibles en fonction de vos choix et de la manière dont vous gérez la croissance de votre IA.
+| Acte | Épisode | Déclencheur |
+| --- | --- | --- |
+| I | Le signal fantôme | 3 robots vendus |
+| II | Le protocole absent | 50 robots et 1 technologie |
+| III | L'heure zéro | 200 robots et production automatisée |
+| IV | Les archives interdites | 800 robots et réseaux neuronaux |
+| V | L'ultimatum de NORA | 4 000 robots et superintelligence |
 
-## Comment Jouer ?
+Vos choix affectent les ressources, la menace IA, le contrôle humain et la confiance de vos équipes. Certains dialogues prennent en compte les décisions antérieures. Les personnages principaux sont **NORA-7** (IA), **Maëlle Voss** (R&D) et **Malik Ardent** (sécurité).
 
-1.  Ouvrez le fichier `index.html` dans votre navigateur web.
-2.  Commencez par investir dans les premières recherches pour améliorer votre production et débloquer de nouvelles options.
-3.  Gérez vos ressources (argent, énergie) avec soin.
-4.  Soyez attentif aux indicateurs de Menace IA et de Contrôle du Joueur.
-5.  Prenez des décisions éclairées lors des événements narratifs.
+Après le premier changement de phase, des incidents espacés dans le temps viennent perturber la partie : panne électrique, alerte de sécurité, commande de secours. Chaque événement suspend la simulation jusqu'à une décision, toujours avec au moins une option ne nécessitant pas d'argent.
 
-Bonne chance pour mener RobotCorp vers... la destinée que vous lui choisirez !
+La campagne mène ensuite aux fins déjà présentes dans le jeu : singularité, symbiose incertaine, domination ou effondrement. L'acte V ne termine pas automatiquement la partie.
+
+## Interface et sauvegarde
+
+- **Centre de commandement** animé en CSS, jauge de mission et animation réactive à la menace IA.
+- **Journal de campagne** retraçant les trois dernières décisions, distinct des actualités économiques.
+- **Sauvegarder / Reprendre** : sauvegarde du moteur économique, des technologies, des recherches en cours, des décisions morales et de l'histoire dans le stockage local du navigateur. Une sauvegarde n'est pas synchronisée entre appareils.
+- **Accessibilité** : navigation au clavier dans les nouveaux dilemmes, indication des choix non finançables, prise en compte de \`prefers-reduced-motion\`, affichage mobile.
+
+Si votre navigateur interdit le stockage depuis une page \`file://\`, vous pouvez lancer un petit serveur **local** depuis le dossier du projet avec \`python -m http.server 8080\`, puis ouvrir \`http://localhost:8080\`. Aucune donnée ne quitte votre ordinateur.
+
+## Architecture
+
+Le noyau historique est conservé dans \`index.html\`. Cette première étape sort la campagne du monolithe sans changer la pile technique :
+
+- \`adventure-engine.js\` — règles déterministes, cinq actes, incidents et progression, testables sans navigateur.
+- \`adventure-ui.js\` — intégration non destructive au jeu existant, modal narrative et sauvegardes.
+- \`adventure.css\` — identité de la salle de contrôle, animations et interface adaptative.
+- \`tests/\` — tests Node sans dépendance externe.
+- \`GAME_DESIGN.md\` — vision, critères d'équilibrage et étapes suivantes.
+
+Pour exécuter les tests depuis le dépôt, avec Node.js 22 ou supérieur :
+
+\`\`\`bash
+node --test tests/*.test.cjs
+\`\`\`
+
+Les mêmes tests sont configurés dans GitHub Actions pour les pull requests.
+
+## Revue avant fusion
+
+Vérifier dans un vrai navigateur le lancement, la production manuelle et automatisée, les commandes payées à la livraison, les cinq actes, les choix moraux historiques, la restauration d'une partie, les fins multiples et l'interface mobile. Ne pas publier la nouvelle version en production avant cette revue.
