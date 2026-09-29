@@ -578,7 +578,7 @@ function showChoiceModal(choice){
       <div class="choice-content">
         <h3>${choice.title}</h3>
         <div style="margin-bottom:13px;">${choice.desc}</div>
-        ${choice.options.map((opt,i)=>`<button class="choicebtn" ${opt.effects.money < 0 && state.money < -opt.effects.money ? "disabled title=\"Fonds insuffisants\"" : ""} data-choice="${i}">${opt.text}</button>`).join(')}
+        ${choice.options.map((opt,i)=>`<button class="choicebtn" ${opt.effects.money < 0 && state.money < -opt.effects.money ? "disabled title=\"Fonds insuffisants\"" : ""} data-choice="${i}">${opt.text}</button>`).join('')}
       </div>
     </div>
   `;
