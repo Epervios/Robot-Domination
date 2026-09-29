@@ -1,0 +1,84 @@
+name: One-time legacy branch cleanup
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/branch-cleanup.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: robot-domination-legacy-branch-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Vérifier que main contient toute la V4
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor a7b2c843c8daa058d23d349f3df02939525a83b6 HEAD
+          test -f v4/campaign.js
+          test -f v4/core.js
+          test -f v4/game.js
+          test -f legacy-v3.html
+          echo "Main contient bien le livrable V4 et la V3 conservée."
+      - name: Archiver l'unique ancienne branche dont l'historique est indépendant
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin refs/heads/fix-auto-prod-visibility-sales-robustness
+          tag="archive/robot-domination-classic-2026-03-31"
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            git tag "$tag" db8f2fe11e34a472460b59dfa0f00b5391be5572
+            git push origin "refs/tags/$tag"
+          fi
+          echo "Archive préservée : $tag."
+      - name: Essayer de déclarer main comme branche par défaut
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh api --method PATCH "repos/$GITHUB_REPOSITORY" -f default_branch=main >/dev/null 2>/tmp/gh-repo-admin-error; then
+            echo "La branche par défaut est désormais main."
+          else
+            echo "::warning::Le jeton GitHub Actions ne dispose pas du droit d'administration. Changer la branche par défaut dans Settings > Branches > Default branch > main."
+          fi
+          default="$(gh api "repos/$GITHUB_REPOSITORY" --jq .default_branch)"
+          echo "Branche par défaut actuelle : $default"
+      - name: Supprimer les six branches obsolètes, jamais main ni la branche par défaut
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          default="$(gh api "repos/$GITHUB_REPOSITORY" --jq .default_branch)"
+          for branch in \
+            "balance/aggressive-rebalance-v3-threat-control" \
+            "feature/immersive-adventure-v2" \
+            "fix-auto-prod-visibility-sales-robustness" \
+            "prototype/robot-domination-v3" \
+            "prototype/robot-domination-v4-odyssey" \
+            "fix/auto-prod-visibility-sales-robustness"; do
+            if [[ "$branch" == "$default" || "$branch" == "main" ]]; then
+              echo "CONSERVÉE (branche par défaut ou main) : $branch"
+              continue
+            fi
+            if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
+              git push origin --delete "$branch"
+              echo "SUPPRIMÉE : $branch"
+            else
+              echo "DÉJÀ ABSENTE : $branch"
+            fi
+          done
+          echo "Nettoyage terminé. La branche par défaut ne peut pas être supprimée avant la bascule."
