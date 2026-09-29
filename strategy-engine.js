@@ -19,6 +19,12 @@
     shortage: {id:"shortage",label:"Pénurie de composants",demand:1,cost:1.3,energy:1.2,description:"Coût des robots +30 %, énergie +20 %."},
     competition: {id:"competition",label:"Offensive concurrente",demand:.55,cost:1,energy:1,description:"Demande divisée presque par deux : adaptez vos investissements."}
   };
+  const GRID_UPGRADES=[
+    {title:"Raccordement renforcé",cost:150000,regeneration:15},
+    {title:"Micro-réseau industriel",cost:700000,regeneration:55},
+    {title:"Centrale hybride",cost:3500000,regeneration:170},
+    {title:"Réseau orbital",cost:12000000,regeneration:500}
+  ];
   const OFFERS = [
     {id:"rescue",title:"Robots de secours",qte:15,prix:21000,deadline:110,minPhase:1,
       success:{reputation:7,satisfaction:5,research:180},failure:{reputation:-7,satisfaction:-4}},
@@ -29,7 +35,7 @@
   ];
   function initial() {
     return {version:1,mode:"balanced",elapsed:0,modeChangedAt:-30,market:"stable",
-      marketIndex:0,nextMarketAt:75,activeContract:null,offerIndex:0,
+      marketIndex:0,nextMarketAt:75,gridLevel:0,activeContract:null,offerIndex:0,
       nextOfferAt:12,history:[],lastOutcome:null};
   }
   function ensure(state) {
@@ -42,6 +48,20 @@
   function selectMode(state,mode) {
     if (!MODES[mode] || !canChangeMode(state) || ensure(state).mode === mode) return false;
     const s=ensure(state);s.mode=mode;s.modeChangedAt=s.elapsed;return true;
+  }
+  function nextGridUpgrade(state) {
+    return GRID_UPGRADES[ensure(state).gridLevel] || null;
+  }
+  function energyRegen(state) {
+    return 4 + GRID_UPGRADES.slice(0,ensure(state).gridLevel)
+      .reduce((sum,upgrade)=>sum+upgrade.regeneration,0);
+  }
+  function upgradeGrid(state) {
+    const upgrade=nextGridUpgrade(state);
+    if(!upgrade || state.money<upgrade.cost)return false;
+    state.money-=upgrade.cost;
+    ensure(state).gridLevel++;
+    return true;
   }
   function offer(state) {
     const s=ensure(state);
@@ -91,11 +111,11 @@
     s.elapsed+=dt;
     const p=policy(state);
     // Les effets continus s'appliquent uniquement pendant la simulation (tick).
-    if (p.id==="surge") {
+    if (p.id==="surge" && (state.autoProduction || state.ventes_par_seconde>0)) {
       state.aithreat=Math.min(100,state.aithreat+.052*dt);
       state.satisfaction=Math.max(0,state.satisfaction-.08*dt);
     }
-    if (p.id==="precision") {
+    if (p.id==="precision" && state.ventes_par_seconde>0) {
       state.satisfaction=Math.min(120,state.satisfaction+.09*dt);
       state.reputation=Math.min(150,state.reputation+.018*dt);
     }
@@ -122,6 +142,6 @@
     }
     return news;
   }
-  return {MODES,MARKETS,OFFERS,initial,ensure,policy,market,canChangeMode,selectMode,
+  return {MODES,MARKETS,OFFERS,GRID_UPGRADES,initial,ensure,policy,market,nextGridUpgrade,upgradeGrid,energyRegen,canChangeMode,selectMode,
     offer,sign,reject,tick};
 });
