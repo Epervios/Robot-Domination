@@ -97,6 +97,7 @@ test("usure excessive : ralentissement, panne physique et conséquences de la su
 });
 test("missions alternatives : deux indices ou audit, pare-feu ou noyau ou trois indices",()=>{
  const s=E.create();s.storyIndex=4;s.sold=82;s.running=true;
+ s.crisesDone=E.CRISES.map(c=>c.id); // Isoler les conditions de mission des incidents tactiques.
  assert.equal(E.mission(s).ready,false);
  E.tick(s,.1);
  assert.equal(s.scene,null);
