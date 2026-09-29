@@ -36,13 +36,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin refs/heads/fix-auto-prod-visibility-sales-robustness
           tag="archive/robot-domination-classic-2026-03-31"
-          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "Archive déjà préservée : $tag."
+          else
+            git fetch origin refs/heads/fix-auto-prod-visibility-sales-robustness
             git tag "$tag" db8f2fe11e34a472460b59dfa0f00b5391be5572
             git push origin "refs/tags/$tag"
+            echo "Archive préservée : $tag."
           fi
-          echo "Archive préservée : $tag."
       - name: Essayer de déclarer main comme branche par défaut
         shell: bash
         env:
