@@ -26,16 +26,23 @@ Ces épisodes constituent **l'arc de lancement**, pas l'ensemble des récits fut
 
 ## Règles de cohérence
 
-- Lancement du jeu : 300 000 $, robot standard vendu 15 000 $, coût de fabrication initial 4 800 $.
+- Lancement du jeu : 300 000 $, énergie de réserve 600, production électrique 4/s, robot standard vendu 15 000 $, coût de fabrication initial 4 800 $. Les investissements dans le réseau (150K, 700K, 3,5M, 12M) ajoutent 15, 55, 170 et 500 unités d'énergie/s.
 - Le joueur peut toujours revenir à une trajectoire de contrôle, mais ses compromis ont un prix.
 - Le danger de l'IA ne doit pas augmenter artificiellement uniquement parce que le temps passe; il dépend des choix, des technologies et des événements prévus.
 - Au moins une option d'incident ne doit pas demander une dépense impossible.
 - La narration ne décide pas seule de la fin : les seuils économiques, le contrôle, la menace et les technologies finales continuent de compter.
 - Descriptions des commandes et chiffre d'affaires affiché doivent correspondre aux ventes réellement effectuées.
 
+## Boucle de jeu stratégique V2.1
+
+- Le joueur arbitre entre trois politiques de production : équilibrée, expansion (+45 % de cadence, +24 % de coût de fabrication, +40 % de consommation) et qualité (-28 % de cadence, +16 % de coût, -22 % d'énergie). La politique est verrouillée pendant 25 secondes de simulation pour éviter le micro-changement opportuniste.
+- Le marché change toutes les 75 secondes : accélération de la demande (×1,7), pénurie (+30 % de coûts), concurrence (×0,55 sur la demande), retour à la normale. La demande de base est modulée par le nombre de robots adoptés pour créer de vrais cycles de stocks et de trésorerie.
+- Les appels d'offres optionnels exigent une livraison dans un délai affiché. Ils sont facturés à chaque livraison, pas à la signature ; succès et échec affectent réputation, satisfaction et éventuellement recherche.
+- La génération d'énergie est liée à l'infrastructure industrielle et non au seul nombre de robots vendus. Les politiques Expansion/Qualité produisent des effets de réputation ou de menace seulement lorsqu'il existe une activité réelle.
+
 ## Direction visuelle
 
-**RobotCorp = salle de contrôle industrielle**, et non tableau de bord administratif. Une identité sombre, contraste fort, bleu glacial et vert pour les systèmes sous contrôle; ambre/rouge quand les seuils de menace augmentent. Les animations sont intégrées à la lecture : radar, noyau, transitions de chapitre, alerte. Pas d'animations bloquantes ni de surcharge de notifications. L'utilisateur peut demander la réduction des mouvements au niveau du système.
+**RobotCorp = salle de contrôle industrielle**, et non tableau de bord administratif. Au-delà de 920 px, les trois panneaux restent affichés ; sur téléphone/tablette, un seul panneau est visible à la fois avec navigation fixe par onglets. Les technologies sont montées seulement lors de changements structurels (phase, achat, file de recherches, bouton « toutes »), jamais à chaque variation de trésorerie. Une identité sombre, contraste fort, bleu glacial et vert pour les systèmes sous contrôle; ambre/rouge quand les seuils de menace augmentent. Les animations sont intégrées à la lecture : radar, noyau, transitions de chapitre, alerte. Pas d'animations bloquantes ni de surcharge de notifications. L'utilisateur peut demander la réduction des mouvements au niveau du système.
 
 ## Architecture et protection du jeu existant
 
