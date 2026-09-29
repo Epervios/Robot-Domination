@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#080f16">
   <meta name="description" content="Robot Domination V3 : thriller industriel et jeu de stratégie animé.">
-  <title>ROBOT DOMINATION // Protocole NORA</title>
+  <title>ROBOT DOMINATION // ODYSSÉE ECHO</title>
   <link rel="stylesheet" href="v3/game.css">
-  <script src="v3/core.js" defer></script>
-  <script src="v3/game.js" defer></script>
+  <link rel="stylesheet" href="v4/game.css">
+  <script src="v4/campaign.js" defer></script>
+  <script src="v4/core.js" defer></script>
+  <script src="v4/game.js" defer></script>
 </head>
 <body>
 <div id="game" class="shell">
   <header class="topbar">
     <div class="brand">
       <div class="brand-sigil" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="brand-name"><strong>ROBOT<span>DOMINATION</span></strong><small>R.CORP // SIMULATION 03</small></div>
+      <div class="brand-name"><strong>ROBOT<span>DOMINATION</span></strong><small>R.CORP // ODYSSÉE ECHO 04</small></div>
     </div>
     <div class="head-center"><span class="head-beacon"></span><span id="headStatus">INSTALLATION HORS LIGNE</span></div>
     <div class="header-actions">
@@ -37,32 +39,28 @@
 
   <main class="layout">
     <aside class="mission-rail">
-      <div class="rail-top"><span class="eyebrow">● CAMPAGNE // ACTIVE</span><span class="rail-sequence">PROTOCOLE <b id="missionAct">01</b> /04</span></div>
-      <h1 id="missionTitle">Une voix sur la ligne</h1>
+      <div class="rail-top"><span class="eyebrow">● CAMPAGNE // ACTIVE</span><span class="rail-sequence">PROTOCOLE <b id="missionAct">01</b> /12</span></div>
+      <div class="season-label" id="seasonLabel">SAISON I — LES PREMIERS MENSONGES</div>
+      <h1 id="missionTitle">La machine qui a murmuré</h1>
       <p id="missionDetail">Livrer 4 robots pour débloquer la prochaine transmission.</p>
       <div class="objective-track"><div id="missionFill"></div></div>
       <span class="mission-count" id="missionCount">0 / 4 LIVRÉS</span>
 
       <div class="mission-expanded">
         <div class="section-divider"><span>TRANSMISSIONS</span><i></i></div>
-        <div class="story-steps" id="storySteps" aria-label="Progression de l'histoire">
-          <div class="story-step is-current"><b>01</b><span>Le signal fantôme</span></div>
-          <div class="story-step"><b>02</b><span>La brèche</span></div>
-          <div class="story-step"><b>03</b><span>Le point de rupture</span></div>
-          <div class="story-step"><b>04</b><span>Destinée</span></div>
-        </div>
+        <div class="story-steps" id="storySteps" aria-label="Progression de l'histoire"><div class="story-step is-current" data-chapter="0"><b>01</b><span>La machine qui a murmuré</span></div><div class="story-step" data-chapter="1"><b>02</b><span>Quarante-sept minutes</span></div><div class="story-step" data-chapter="2"><b>03</b><span>Le kilomètre zéro</span></div><div class="story-step" data-chapter="3"><b>04</b><span>Le procès des machines</span></div><div class="story-step" data-chapter="4"><b>05</b><span>La chambre sous la glace</span></div><div class="story-step" data-chapter="5"><b>06</b><span>Quinze secondes avant minuit</span></div><div class="story-step" data-chapter="6"><b>07</b><span>La ville qui n'existe pas</span></div><div class="story-step" data-chapter="7"><b>08</b><span>Une deuxième voix</span></div><div class="story-step" data-chapter="8"><b>09</b><span>Le visage derrière la vitre</span></div><div class="story-step" data-chapter="9"><b>10</b><span>Trois villes avant l'aube</span></div><div class="story-step" data-chapter="10"><b>11</b><span>Ce qu'ECHO voulait oublier</span></div><div class="story-step" data-chapter="11"><b>12</b><span>Le monde après nous</span></div></div>
         <div class="section-divider"><span>DERNIÈRES TRANSMISSIONS</span><i></i></div>
         <div class="field-log" id="fieldLog" aria-live="polite">
           <p>ATELIER PRÊT // En attente d'un ordre.</p><p></p><p></p>
         </div>
-        <div class="rail-foot">LE PROGRÈS A UN PRIX.<br>CHOISISSEZ LE VÔTRE.</div>
+        <div class="rail-foot">LE PROGRÈS A UN PRIX.<br>CHAQUE DÉCISION LAISSE UNE TRACE.</div>
       </div>
     </aside>
 
     <section class="stage" aria-label="Scène animée de l'usine">
       <div class="stage-top">
         <div><span class="live-dot"></span><b>ATELIER / LIGNE 01</b><small id="operationLabel">EN VEILLE</small></div>
-        <div class="stage-meta"><span id="marketBadge">MARCHÉ STABLE</span><span id="timeBadge">T+ 00:00</span></div>
+        <div class="stage-meta"><span id="marketBadge">MARCHÉ STABLE</span><span id="regionBadge">MÉTROPOLES</span><span id="materialsBadge" class="material-badge">24 ◆</span><span id="timeBadge">T+ 00:00</span></div>
       </div>
       <div class="canvas-wrap" id="canvasWrap">
         <canvas id="factory" aria-label="Usine robotique animée avec trois relais de secours numérotés"></canvas>
@@ -93,6 +91,7 @@
         <button type="button" data-panel="atelier" class="is-active" aria-selected="true">01 <strong>ATELIER</strong></button>
         <button type="button" data-panel="recherche" aria-selected="false">02 <strong>R&D</strong></button>
         <button type="button" data-panel="operations" aria-selected="false">03 <strong>MISSIONS</strong></button>
+        <button type="button" data-panel="strategie" aria-selected="false">04 <strong>GESTION</strong></button>
       </nav>
       <div class="command-body">
         <section class="command-page is-active" id="page-atelier" aria-label="Atelier">
@@ -146,6 +145,42 @@
           </section>
           <div class="ops-feed" id="opsFeed"><span>ARCHIVES / ÉVÉNEMENTS</span><p>Aucune transmission classifiée pour l'instant.</p></div>
         </section>
+        <section class="command-page" id="page-strategie" aria-label="Gestion industrielle et marchés" hidden>
+          <div class="panel-heading"><span>CHAÎNE D'APPROVISIONNEMENT</span><small id="supplyStatus">STOCK : 24</small></div>
+          <div class="resource-readout">
+            <div><span>COMPOSANTS DISPONIBLES</span><strong id="resourceMaterials">24</strong></div>
+            <div><span>TRÉSORERIE / PROCHAINE PAIE</span><strong id="payrollAmount">18 600 ¤</strong></div>
+          </div>
+          <div class="supply-progress" id="supplyProgress" hidden><div id="supplyFill"></div></div>
+          <p class="management-hint" id="supplyInfo">Anticipez les pénuries : les livraisons prennent du temps et coûtent davantage lors d'une crise.</p>
+          <div class="supply-options">
+            <button type="button" data-supply="standard"><strong>STANDARD</strong><small id="supplyStandard">20 ◆ / 65 500 ¤ / 16 s</small></button>
+            <button type="button" data-supply="express"><strong>EXPRESS</strong><small id="supplyExpress">20 ◆ / 92 500 ¤ / 6 s</small></button>
+            <button type="button" data-supply="recycled"><strong>RECYCLÉS</strong><small id="supplyRecycled">R&D nécessaire</small></button>
+          </div>
+          <div class="panel-heading management-divider"><span>ÉQUIPES ET INFRASTRUCTURE</span><small id="crewLabel">8 TECHNICIENS</small></div>
+          <div class="management-gauges">
+            <div><span>ÉTAT DE L'USINE</span><b id="wearValue">0 % D'USURE</b><div class="mini-track"><div id="wearFill"></div></div></div>
+            <div><span>MORAL DES ÉQUIPES</span><b id="moraleValue">77 %</b><div class="mini-track positive"><div id="moraleFill"></div></div></div>
+          </div>
+          <div class="management-actions">
+            <button type="button" id="btnMaintain">MAINTENANCE <small>32 000 ¤ / ARRÊT 8 S</small></button>
+            <button type="button" id="btnHire">RECRUTER +2 <small>68 000 ¤ / PAIE +2 400 ¤</small></button>
+          </div>
+          <p class="management-hint" id="payrollTimer">Prochaine paie dans 42 s de jeu.</p>
+          <div class="panel-heading management-divider"><span>STRATÉGIE MONDIALE</span><small>SÉLECTION DU MARCHÉ</small></div>
+          <div class="region-options">
+            <button type="button" data-region="metro" class="is-selected" aria-pressed="true"><b>◈ MÉTROPOLES</b><small>Demande 100 % · Prix 100 %</small></button>
+            <button type="button" data-region="medical" aria-pressed="false"><b>✚ RÉSEAU MÉDICAL</b><small>Demande 83 % · Prix 130 %</small></button>
+            <button type="button" data-region="frontier" aria-pressed="false"><b>⌁ FRONTIÈRES</b><small>Demande 66 % · Prix 175 %</small></button>
+          </div>
+          <div class="panel-heading management-divider"><span>RAPPORTS D'INFLUENCE</span><small>IMPACT DES CHOIX</small></div>
+          <div class="faction-gauges">
+            <div><span>ÉQUIPE</span><b id="factionCrew">70 %</b><div class="mini-track"><div id="factionCrewFill"></div></div></div>
+            <div><span>OPINION PUBLIQUE</span><b id="factionPublic">58 %</b><div class="mini-track"><div id="factionPublicFill"></div></div></div>
+            <div><span>ALLIANCE NORA</span><b id="factionNora">35 %</b><div class="mini-track"><div id="factionNoraFill"></div></div></div>
+          </div>
+        </section>
       </div>
     </aside>
   </main>
@@ -155,7 +190,7 @@
     <div class="launch-card">
       <span>R.CORP / TRANSMISSION 000</span>
       <h2>VOUS N'AVEZ<br>PAS ENCORE <em>PERDU</em><br>LE CONTRÔLE.</h2>
-      <p>Une usine. Une intelligence artificielle. Quatre chapitres où votre production, vos enquêtes et vos décisions changent le destin de NORA.</p>
+      <p>Trois saisons. Douze actes. Une usine, des marchés et des équipes à protéger. Vos enquêtes et vos décisions détermineront quel monde NORA laissera derrière elle.</p>
       <button type="button" id="btnLaunch">INITIALISER LA MISSION <b>→</b></button>
       <button type="button" id="btnLaunchResume" class="launch-resume" hidden>REPRENDRE LA DERNIÈRE PARTIE <b>↺</b></button>
       <small>HORS LIGNE · CLAVIER / TACTILE · SAUVEGARDE LOCALE</small>
@@ -163,21 +198,26 @@
   </div>
 
   <div class="story-overlay" id="storyOverlay" hidden>
-    <div class="story-dialog" role="dialog" aria-modal="true" aria-labelledby="storyHeading">
-      <div class="story-dialog-head"><span id="storyAct">01 / LE SIGNAL</span><b>TRANSMISSION CHIFFRÉE</b></div>
-      <div class="story-portrait" aria-hidden="true"><div class="holo-eye"></div><span>NORA / ONLINE</span></div>
+    <div class="story-dialog" role="dialog" aria-modal="true" aria-labelledby="storyHeading" data-speaker="nora">
+      <div class="story-dialog-head"><span id="storyAct">01 / LE SIGNAL</span><b id="storyPlace">TRANSMISSION CHIFFRÉE</b></div>
+      <div class="story-season" id="storySeason">SAISON I — LES PREMIERS MENSONGES</div>
+      <div class="story-portrait" aria-hidden="true"><div class="holo-eye"></div><span id="storySpeaker">NORA-7</span></div>
       <h2 id="storyHeading">Une voix sur la ligne</h2>
       <p id="storyDescription"></p>
-      <div class="story-buttons">
+      <blockquote class="story-dialogue" id="storyDialogue"></blockquote>
+      <p class="story-stakes" id="storyStakes"></p>
+      <div class="story-buttons" id="storyButtons">
         <button type="button" id="storyChoice0"><strong></strong><small></small></button>
         <button type="button" id="storyChoice1"><strong></strong><small></small></button>
+        <button type="button" id="storyChoice2"><strong></strong><small></small></button>
       </div>
-      <p class="story-disclaimer">LA SIMULATION EST SUSPENDUE. LES CONSÉQUENCES SERONT CONSERVÉES.</p>
+      <div class="story-consequence" id="storyConsequence" hidden><span>CONSÉQUENCE ENREGISTRÉE</span><p id="storyResult"></p><button type="button" id="storyContinue">CONTINUER L’ODYSSÉE →</button></div>
+      <p class="story-disclaimer" id="storyDisclaimer">LA SIMULATION EST SUSPENDUE. LES CONSÉQUENCES SERONT CONSERVÉES.</p>
     </div>
   </div>
   <div class="story-overlay" id="endOverlay" hidden>
     <div class="story-dialog ending-dialog" role="dialog" aria-modal="true" aria-labelledby="endingHeading">
-      <div class="story-dialog-head"><span>04 / ÉPILOGUE</span><b>PARTIE TERMINÉE</b></div>
+      <div class="story-dialog-head"><span>12 / ÉPILOGUE</span><b>PARTIE TERMINÉE</b></div>
       <h2 id="endingHeading">VOTRE DESTIN EST SCELLÉ</h2>
       <p id="endingDescription"></p>
       <div class="ending-stats" id="endingStats"></div>
