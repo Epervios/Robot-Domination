@@ -127,7 +127,7 @@ try{
  // Scanner + reprise indépendante de la V3.
  await page.evaluate(()=>{
   const s=window.RobotDominationV4.getState(),engine=window.RobotDominationV4.engine;
-  s.storyIndex=1;s.sold=16;s.scene=null;s.crisis=null;s.crisesDone=engine.CRISES.map(c=>c.id);
+  s.storyIndex=2;s.sold=16;s.scene=null;s.crisis=null;s.crisesDone=engine.CRISES.map(c=>c.id); // Éviter un acte déclenché au même tick que le test du scanner.
   s.signals=0;s.scanReadyAt=0;s.energy=200;s.running=true;
   for(let i=0;i<150&&engine.signalAlignment(s)<.99;i++)s.time+=.04;
  });
