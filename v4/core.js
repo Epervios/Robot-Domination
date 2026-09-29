@@ -407,11 +407,16 @@ function tick(s,dt){
  }
  return events;
 }
-function validate(s){return !!s&&s.version===3&&Number.isFinite(s.credits)&&s.credits>=0&&
+function validate(s){return !!s&&s.version===4&&Number.isFinite(s.credits)&&s.credits>=0&&
  Number.isFinite(s.time)&&s.time>=0&&Array.isArray(s.techs)&&Array.isArray(s.history)&&
  Number.isInteger(s.sold)&&s.sold>=0&&Array.isArray(s.crisesDone)&&
- Number.isInteger(s.storyIndex)&&s.storyIndex>=0&&s.storyIndex<=4&&Number.isInteger(s.signals)&&s.signals>=0&&s.signals<=3;}
-return {TECHS,CONTRACTS,SCENES,CRISES,create,policy,buildCost,buildEnergy,demand,mission,
+ Number.isInteger(s.storyIndex)&&s.storyIndex>=0&&s.storyIndex<=SCENES.length&&
+ Number.isInteger(s.signals)&&s.signals>=0&&s.signals<=3&&
+ Number.isInteger(s.materials)&&s.materials>=0&&s.materials<=10000&&
+ Number.isFinite(s.wear)&&s.wear>=0&&s.wear<=100&&Object.keys(REGIONS).includes(s.region)&&
+ s.factions&&["crew","public","nora"].every(k=>Number.isFinite(s.factions[k]));}
+return {TECHS,CONTRACTS,SCENES,CRISES,REGIONS,create,policy,buildCost,buildEnergy,demand,mission,
  orderBuild,buyTech,setMode,upgradeGrid,signalAlignment,captureSignal,getOffer,acceptContract,rejectContract,
- getScene,chooseScene,repair,bailout,tick,validate,note};
+ getScene,chooseScene,repair,bailout,tick,validate,note,currentRegion,regionAvailable,selectRegion,
+ materialQuote,orderMaterials,maintain,hire,maxQueue,gateReady};
 });
