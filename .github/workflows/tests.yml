@@ -5,6 +5,7 @@ on:
     branches:
       - feature/immersive-adventure-v2
       - prototype/robot-domination-v3
+      - prototype/robot-domination-v4-odyssey
   pull_request:
 
 permissions:
