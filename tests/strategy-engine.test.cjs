@@ -4,7 +4,7 @@ const assert=require("node:assert/strict");
 const engine=require("../strategy-engine.js");
 function game(phase=1) {
   return {phase,robots:50,money:300000,energy:5000,specialOrders:[],
-    reputation:50,satisfaction:70,research:0,aithreat:0,playercontrol:100};
+    reputation:50,satisfaction:70,research:0,aithreat:0,playercontrol:100,autoProduction:true,ventes_par_seconde:1};
 }
 test("modes industriels : arbitrages vérifiables et verrouillage de 25 secondes de jeu",()=>{
   const state=game();
@@ -80,4 +80,35 @@ test("compatibilité des états existants et absence d'enrichissement artificiel
   assert.equal(engine.offer(state).id,"rescue");
   const restored=JSON.parse(JSON.stringify(state));
   assert.equal(engine.policy(restored).id,"balanced");
+});
+
+
+test("le réseau électrique est un investissement progressif et plafonné",()=>{
+  const state=game();
+  assert.equal(engine.energyRegen(state),4);
+  const price=engine.nextGridUpgrade(state).cost;
+  assert.equal(price,150000);
+  assert.equal(engine.upgradeGrid(state),true);
+  assert.equal(state.money,150000);
+  assert.equal(engine.energyRegen(state),19);
+  assert.equal(engine.upgradeGrid(state),false);
+  state.money=20000000;
+  assert.equal(engine.upgradeGrid(state),true);
+  assert.equal(engine.energyRegen(state),74);
+  assert.equal(engine.upgradeGrid(state),true);
+  assert.equal(engine.energyRegen(state),244);
+  assert.equal(engine.upgradeGrid(state),true);
+  assert.equal(engine.energyRegen(state),744);
+  assert.equal(engine.upgradeGrid(state),false);
+});
+
+test("une usine inactive ne gonfle pas gratuitement satisfaction et risque",()=>{
+  const state=game();state.autoProduction=false;state.ventes_par_seconde=0;
+  assert.equal(engine.selectMode(state,"surge"),true);
+  engine.tick(state,10);
+  assert.equal(state.aithreat,0);
+  engine.ensure(state).elapsed=30;
+  assert.equal(engine.selectMode(state,"precision"),true);
+  engine.tick(state,1);
+  assert.equal(state.reputation,50);
 });
