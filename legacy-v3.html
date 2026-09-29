@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080f16">
+  <meta name="description" content="Robot Domination V3 : thriller industriel et jeu de stratégie animé.">
+  <title>ROBOT DOMINATION // Protocole NORA</title>
+  <link rel="stylesheet" href="v3/game.css">
+  <script src="v3/core.js" defer></script>
+  <script src="v3/game.js" defer></script>
+</head>
+<body>
+<div id="game" class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-sigil" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="brand-name"><strong>ROBOT<span>DOMINATION</span></strong><small>R.CORP // SIMULATION 03</small></div>
+    </div>
+    <div class="head-center"><span class="head-beacon"></span><span id="headStatus">INSTALLATION HORS LIGNE</span></div>
+    <div class="header-actions">
+      <button id="btnAudio" type="button" title="Activer ou désactiver les effets sonores" aria-pressed="false">◌ <span>SON</span></button>
+      <button id="btnSave" type="button" title="Sauvegarder la partie sur cet appareil">⤓ <span>SAUVER</span></button>
+      <button id="btnLoad" type="button" title="Charger la dernière sauvegarde" disabled>↺ <span>REPRENDRE</span></button>
+      <button id="btnPause" type="button" class="pause" title="Mettre en pause ou reprendre">▶ <span>DÉMARRER</span></button>
+    </div>
+  </header>
+
+  <section class="telemetry" aria-label="Tableau de bord">
+    <div class="datum"><span>CRÉDITS</span><strong id="statCredits">220 000</strong><small>¤ DISPONIBLES</small></div>
+    <div class="datum"><span>ÉNERGIE</span><strong id="statEnergy">100</strong><small id="energyRegen">+6 / SEC</small></div>
+    <div class="datum"><span>ROBOTS LIVRÉS</span><strong id="statSold">0</strong><small id="stockLine">2 EN STOCK</small></div>
+    <div class="datum"><span>DONNÉES R&D</span><strong id="statData">5</strong><small id="researchLine">LABO DISPONIBLE</small></div>
+    <div class="datum danger-datum"><span>MENACE NORA</span><strong id="statThreat">06<span class="unit"> /100</span></strong><div class="micro-gauge"><div id="threatFill"></div></div></div>
+    <div class="datum"><span>CONFIANCE</span><strong id="statTrust">68<span class="unit"> %</span></strong><div class="micro-gauge trust-gauge"><div id="trustFill"></div></div></div>
+  </section>
+
+  <main class="layout">
+    <aside class="mission-rail">
+      <div class="rail-top"><span class="eyebrow">● CAMPAGNE // ACTIVE</span><span class="rail-sequence">PROTOCOLE <b id="missionAct">01</b> /04</span></div>
+      <h1 id="missionTitle">Une voix sur la ligne</h1>
+      <p id="missionDetail">Livrer 4 robots pour débloquer la prochaine transmission.</p>
+      <div class="objective-track"><div id="missionFill"></div></div>
+      <span class="mission-count" id="missionCount">0 / 4 LIVRÉS</span>
+
+      <div class="mission-expanded">
+        <div class="section-divider"><span>TRANSMISSIONS</span><i></i></div>
+        <div class="story-steps" id="storySteps" aria-label="Progression de l'histoire">
+          <div class="story-step is-current"><b>01</b><span>Le signal fantôme</span></div>
+          <div class="story-step"><b>02</b><span>La brèche</span></div>
+          <div class="story-step"><b>03</b><span>Le point de rupture</span></div>
+          <div class="story-step"><b>04</b><span>Destinée</span></div>
+        </div>
+        <div class="section-divider"><span>DERNIÈRES TRANSMISSIONS</span><i></i></div>
+        <div class="field-log" id="fieldLog" aria-live="polite">
+          <p>ATELIER PRÊT // En attente d'un ordre.</p><p></p><p></p>
+        </div>
+        <div class="rail-foot">LE PROGRÈS A UN PRIX.<br>CHOISISSEZ LE VÔTRE.</div>
+      </div>
+    </aside>
+
+    <section class="stage" aria-label="Scène animée de l'usine">
+      <div class="stage-top">
+        <div><span class="live-dot"></span><b>ATELIER / LIGNE 01</b><small id="operationLabel">EN VEILLE</small></div>
+        <div class="stage-meta"><span id="marketBadge">MARCHÉ STABLE</span><span id="timeBadge">T+ 00:00</span></div>
+      </div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="factory" aria-label="Usine robotique animée avec trois relais de secours numérotés"></canvas>
+        <div class="stage-marker marker-tl" aria-hidden="true"></div><div class="stage-marker marker-br" aria-hidden="true"></div>
+        <div class="canvas-caption" id="canvasCaption">TOUCHER L'ATELIER POUR COMMANDER UN ROBOT</div>
+        <div class="crisis-hud" id="crisisHud" hidden>
+          <div class="crisis-top"><span>⚡ INCIDENT CRITIQUE</span><b id="crisisClock">30 S</b></div>
+          <h2 id="crisisTitle">SURCHARGE / LIGNE 03</h2>
+          <p id="crisisHint">Réarmez les relais dans l'ordre indiqué.</p>
+          <div class="crisis-relays" aria-label="Relais à réarmer">
+            <button type="button" data-repair="0">01 <small>RELAIS A</small></button>
+            <button type="button" data-repair="1">02 <small>RELAIS B</small></button>
+            <button type="button" data-repair="2">03 <small>RELAIS C</small></button>
+          </div>
+          <p class="crisis-foot" id="crisisProgress">0 / 3 RÉARMÉS</p>
+        </div>
+      </div>
+      <div class="stage-bottom">
+        <div class="belt-indicator"><span>CHAÎNE D'ASSEMBLAGE</span><b id="queueLine">0 EN FILE</b>
+          <div class="belt-track"><div id="beltFill"></div></div>
+        </div>
+        <div class="stage-readout"><span>STOCK <b id="stageStock">02</b></span><span>CADENCE <b id="stageRate">1×</b></span><span>DEMANDE <b id="stageDemand">0,3/s</b></span></div>
+      </div>
+    </section>
+
+    <aside class="command-panel">
+      <nav class="command-tabs" aria-label="Panneaux de commande">
+        <button type="button" data-panel="atelier" class="is-active" aria-selected="true">01 <strong>ATELIER</strong></button>
+        <button type="button" data-panel="recherche" aria-selected="false">02 <strong>R&D</strong></button>
+        <button type="button" data-panel="operations" aria-selected="false">03 <strong>MISSIONS</strong></button>
+      </nav>
+      <div class="command-body">
+        <section class="command-page is-active" id="page-atelier" aria-label="Atelier">
+          <div class="panel-heading"><span>FABRICATION</span><small>UNITÉ : RC-01</small></div>
+          <div class="big-build">
+            <button type="button" id="buildOne"><span class="build-symbol">✚</span><span><strong>FABRIQUER</strong><small id="buildCost">9 600 ¤ / 12 ⚡</small></span></button>
+            <button type="button" id="buildThree" class="batch">×3 <span>LOT</span></button>
+          </div>
+          <div class="mini-hint" id="buildHint">Commandes en attente : 0 / 12</div>
+          <div class="panel-heading"><span>STRATÉGIE DE PRODUCTION</span><small id="modeLabel">STANDARD</small></div>
+          <div class="mode-switch" id="modeSwitch">
+            <button type="button" data-mode="normal" class="is-selected" aria-pressed="true">NORMAL<small>Régulier</small></button>
+            <button type="button" data-mode="rush" aria-pressed="false">SURCADENCE<small>+50 % / Risque ↑</small></button>
+            <button type="button" data-mode="safe" aria-pressed="false">SÉCURISÉ<small>Risque ↓ / Lent</small></button>
+          </div>
+          <div class="grid-invest">
+            <div><b id="gridTitle">INFRASTRUCTURE ÉNERGÉTIQUE</b><small id="gridCost">Prochain réseau : 68 000 ¤</small></div>
+            <button type="button" id="buildGrid">RENFORCER <span>↗</span></button>
+          </div>
+          <button type="button" id="btnBailout" class="recovery" hidden>APPEL DE FONDS D'URGENCE (+28 000 ¤ / −12 confiance)</button>
+        </section>
+
+        <section class="command-page" id="page-recherche" aria-label="Recherche et développement" hidden>
+          <div class="panel-heading"><span>LABORATOIRE</span><small id="labStatus">DISPONIBLE</small></div>
+          <div class="active-tech" id="activeTech" hidden><b id="techInProgress">R&D</b><div class="active-track"><div id="techFill"></div></div></div>
+          <p class="tech-intro">Un choix technologique modifie vraiment la cadence, l'énergie, la demande ou le contrôle de NORA.</p>
+          <div class="tech-cards" id="techCards"></div>
+        </section>
+
+        <section class="command-page" id="page-operations" aria-label="Contrats et opérations" hidden>
+          <div class="panel-heading"><span>APPELS D'OFFRES</span><small id="contractTag">DISPONIBLE PLUS TARD</small></div>
+          <div class="contract-card">
+            <span class="contract-kicker">MARCHÉ PRIORITAIRE</span>
+            <h2 id="contractTitle">Secours hospitalier</h2>
+            <p id="contractDescription">Première offre après huit robots livrés.</p>
+            <div class="contract-numbers"><span id="contractUnits">— ROBOTS</span><b id="contractDeadline">—</b></div>
+            <div class="contract-track" id="contractProgress" hidden><div id="contractFill"></div></div>
+            <div class="contract-buttons"><button type="button" id="btnAccept">ACCEPTER</button><button type="button" id="btnReject">PLUS TARD</button></div>
+          </div>
+          <div class="intel-card"><span>RENSEIGNEMENT</span><h3>NORA-7 VOUS OBSERVE</h3>
+            <p id="intelText">Les premières anomalies apparaîtront avec les robots déployés. Vos choix seront conservés pour les chapitres suivants.</p>
+          </div>
+          <section class="signal-console" aria-label="Mini-jeu de décryptage du signal">
+            <div class="signal-head"><span>ENQUÊTE // OSCILLOSCOPE</span><strong id="signalCount">0 / 3 FRAGMENTS</strong></div>
+            <p id="signalClue">Alignez le curseur sur la fenêtre verte pour capter une fréquence.</p>
+            <div class="signal-meter" role="img" aria-label="Échelle de synchronisation avec zone de capture entre 80 et 100 pour cent">
+              <div class="signal-safe"></div><div class="signal-marker" id="signalMarker"></div>
+            </div>
+            <div class="signal-details"><span id="signalPrecision">0 % SYNCHRONISATION</span><span id="signalCooldown">PRÊT</span></div>
+            <button type="button" id="btnScan">CAPTURER LE SIGNAL <span>◎</span></button>
+          </section>
+          <div class="ops-feed" id="opsFeed"><span>ARCHIVES / ÉVÉNEMENTS</span><p>Aucune transmission classifiée pour l'instant.</p></div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="launch-screen" id="launchScreen">
+    <div class="launch-card">
+      <span>R.CORP / TRANSMISSION 000</span>
+      <h2>VOUS N'AVEZ<br>PAS ENCORE <em>PERDU</em><br>LE CONTRÔLE.</h2>
+      <p>Une usine. Une intelligence artificielle. Quatre chapitres où votre production, vos enquêtes et vos décisions changent le destin de NORA.</p>
+      <button type="button" id="btnLaunch">INITIALISER LA MISSION <b>→</b></button>
+      <button type="button" id="btnLaunchResume" class="launch-resume" hidden>REPRENDRE LA DERNIÈRE PARTIE <b>↺</b></button>
+      <small>HORS LIGNE · CLAVIER / TACTILE · SAUVEGARDE LOCALE</small>
+    </div>
+  </div>
+
+  <div class="story-overlay" id="storyOverlay" hidden>
+    <div class="story-dialog" role="dialog" aria-modal="true" aria-labelledby="storyHeading">
+      <div class="story-dialog-head"><span id="storyAct">01 / LE SIGNAL</span><b>TRANSMISSION CHIFFRÉE</b></div>
+      <div class="story-portrait" aria-hidden="true"><div class="holo-eye"></div><span>NORA / ONLINE</span></div>
+      <h2 id="storyHeading">Une voix sur la ligne</h2>
+      <p id="storyDescription"></p>
+      <div class="story-buttons">
+        <button type="button" id="storyChoice0"><strong></strong><small></small></button>
+        <button type="button" id="storyChoice1"><strong></strong><small></small></button>
+      </div>
+      <p class="story-disclaimer">LA SIMULATION EST SUSPENDUE. LES CONSÉQUENCES SERONT CONSERVÉES.</p>
+    </div>
+  </div>
+  <div class="story-overlay" id="endOverlay" hidden>
+    <div class="story-dialog ending-dialog" role="dialog" aria-modal="true" aria-labelledby="endingHeading">
+      <div class="story-dialog-head"><span>04 / ÉPILOGUE</span><b>PARTIE TERMINÉE</b></div>
+      <h2 id="endingHeading">VOTRE DESTIN EST SCELLÉ</h2>
+      <p id="endingDescription"></p>
+      <div class="ending-stats" id="endingStats"></div>
+      <button type="button" id="btnRestart">NOUVELLE CHRONOLOGIE ↗</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
