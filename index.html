@@ -135,6 +135,15 @@
           <div class="intel-card"><span>RENSEIGNEMENT</span><h3>NORA-7 VOUS OBSERVE</h3>
             <p id="intelText">Les premières anomalies apparaîtront avec les robots déployés. Vos choix seront conservés pour les chapitres suivants.</p>
           </div>
+          <section class="signal-console" aria-label="Mini-jeu de décryptage du signal">
+            <div class="signal-head"><span>ENQUÊTE // OSCILLOSCOPE</span><strong id="signalCount">0 / 3 FRAGMENTS</strong></div>
+            <p id="signalClue">Alignez le curseur sur la fenêtre verte pour capter une fréquence.</p>
+            <div class="signal-meter" role="img" aria-label="Échelle de synchronisation avec zone de capture entre 80 et 100 pour cent">
+              <div class="signal-safe"></div><div class="signal-marker" id="signalMarker"></div>
+            </div>
+            <div class="signal-details"><span id="signalPrecision">0 % SYNCHRONISATION</span><span id="signalCooldown">PRÊT</span></div>
+            <button type="button" id="btnScan">CAPTURER LE SIGNAL <span>◎</span></button>
+          </section>
           <div class="ops-feed" id="opsFeed"><span>ARCHIVES / ÉVÉNEMENTS</span><p>Aucune transmission classifiée pour l'instant.</p></div>
         </section>
       </div>
