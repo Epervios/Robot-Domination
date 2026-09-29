@@ -307,3 +307,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
  .signal-meter{height:17px;margin:8px 1px 5px}
  .signal-console button{padding:8px;font-size:.66rem}
 }
+
+.launch-card .launch-resume{margin-top:9px;background:transparent;color:#dbebcf;border:1px solid #9bc8a1;box-shadow:none;padding:13px 17px;font-size:.74rem}
+.launch-card .launch-resume:hover{background:#36564a;color:white}
