@@ -88,6 +88,14 @@ try{
  assert.match(await page.locator("#signalClue").textContent(),/Fragment 1/);
  await page.screenshot({path:path.join(out,"v3-signal-mobile.png"),animations:"disabled"});
  console.log("PASS : mini-jeu de décryptage, fréquence synchronisée et indice conservé.");
+ // La sauvegarde doit être récupérable avant de commencer une nouvelle partie.
+ await page.locator("#btnSave").click();
+ await page.reload({waitUntil:"load"});
+ assert.equal(await page.locator("#btnLaunchResume").isVisible(),true,"Le chargement est masqué par l'écran de démarrage.");
+ await page.locator("#btnLaunchResume").click();
+ assert.equal(await page.locator("#launchScreen").isVisible(),false);
+ assert.equal(await page.evaluate(()=>window.RobotDominationV3.getState().signals),1);
+ console.log("PASS : reprise de partie accessible dès l'écran de lancement.");
  assert.deepEqual(errors,[]);
  console.log("PASS : intervention tactile, 3 relais, aucune erreur JavaScript.");
  console.log("CAPTURES : v3-desktop.png, v3-mobile.png, v3-crisis-mobile.png.");
