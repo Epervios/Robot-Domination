@@ -580,8 +580,13 @@ function updateUI(){
   autoProduction.style.display = state.autoProduction?"block":"none";
   updateMessages();
 }
+let lastMessageHTML = null;
 function updateMessages(){
-  messages.innerHTML = messageQueue.map(m=>`<div class="message">${m}</div>`).join('');
+  const markup = messageQueue.map(m=>`<div class="message">${m}</div>`).join('');
+  if (markup !== lastMessageHTML) {
+    messages.innerHTML = markup;
+    lastMessageHTML = markup;
+  }
 }
 
 function showChoiceModal(choice){
