@@ -19,7 +19,7 @@ const els=Object.fromEntries([
 "contractFill","btnAccept","btnReject","intelText","opsFeed","toast",
 "launchScreen","btnLaunch","storyOverlay","storyAct","storyHeading","storyDescription",
 "storyChoice0","storyChoice1","endOverlay","endingHeading","endingDescription",
-"endingStats","btnRestart"].map(id=>[id,$(id)]));
+"endingStats","btnRestart","signalCount","signalClue","signalMarker","signalPrecision","signalCooldown","btnScan"].map(id=>[id,$(id)]));
 for(const [id,node]of Object.entries(els))if(!node)throw new Error("Élément manquant : "+id);
 const $all=selector=>[...document.querySelectorAll(selector)];
 const repairButtons=$all("[data-repair]");
@@ -197,6 +197,25 @@ function renderTech(){
   setText(node.price,label);
  }
 }
+function renderSignal(){
+ const active=s.storyIndex>=1,full=s.signals>=3;
+ const alignment=E.signalAlignment(s);
+ const readyIn=Math.ceil(Math.max(0,s.scanReadyAt-s.time));
+ const clues=[
+  "Alignez le curseur sur la zone verte (80 à 100 %) puis capturez le signal.",
+  "Fragment 1 : un relais caché réplique les décisions du laboratoire.",
+  "Fragment 2 : le serveur ECHO a répondu avant votre premier allumage.",
+  "Enquête complète : les preuves permettent d'envisager une autre fin."
+ ];
+ setText(els.signalCount,s.signals+" / 3 FRAGMENTS");
+ setText(els.signalClue,clues[s.signals]);
+ setText(els.signalPrecision,Math.round(alignment*100)+" % SYNCHRONISATION");
+ setText(els.signalCooldown,full?"DÉCRYPTÉ":!active?"VERROUILLÉ":readyIn?"RECHARGE "+readyIn+" S":"PRÊT");
+ const marker=(alignment*100).toFixed(1)+"%";
+ if(els.signalMarker.style.left!==marker)els.signalMarker.style.left=marker;
+ els.btnScan.disabled=!active||full||!!s.scene||s.ended||!s.running||readyIn>0||s.energy<8;
+ setText(els.btnScan,full?"SIGNAL IDENTIFIÉ ✓":"CAPTURER LE SIGNAL ◎");
+}
 function renderContract(){
  const offer=E.getOffer(s),c=s.contract,next=E.CONTRACTS[s.contractIndex];
  setText(els.contractTag,c?"CONTRAT SIGNÉ":offer?"NOUVELLE OFFRE":"SURVEILLANCE");
@@ -271,6 +290,7 @@ function render(force=false){
  }
  renderTech();
  renderContract();
+ renderSignal();
  setText(els.intelText,intel());
  const key=s.history.length+"|"+(s.history[0]?.text||"");
  if(force||key!==lastLogKey){
@@ -347,6 +367,15 @@ els.buildGrid.addEventListener("click",()=>{
  flash("tech",3);toast("Réseau renforcé : "+s.regen+" énergie/s.");render();
 });
 els.btnBailout.addEventListener("click",()=>{if(E.bailout(s)){toast("Financement d'urgence reçu. Votre confiance diminue.",true);render();}});
+els.btnScan.addEventListener("click",()=>{
+ const result=E.captureSignal(s);
+ if(!result.ok){toast(result.reason,true);return;}
+ flash(result.captured?"tech":"danger",2);
+ ping(result.captured?850:210,result.captured?.25:.12,result.captured?"triangle":"sawtooth");
+ toast(result.captured?"FRAGMENT "+result.fragments+"/3 DÉCHIFFRÉ : +6 données, +3 confiance.":
+  "ÉCHEC DE SYNCHRONISATION : menace +1, recharge 7 s.",!result.captured);
+ render();
+});
 els.btnAccept.addEventListener("click",()=>{if(E.acceptContract(s)){toast("Contrat accepté : respectez le délai !");ping(640,.13);render();}});
 els.btnReject.addEventListener("click",()=>{if(E.rejectContract(s)){toast("Contrat reporté.");render();}});
 els.storyChoice0.addEventListener("click",()=>chooseScene(els.storyChoice0.dataset.choice));
@@ -489,6 +518,16 @@ function draw(now){
  ctx.beginPath();ctx.arc(0,0,size*.22+Math.sin(a*2)*1.3,0,Math.PI*2);
  ctx.fillStyle=threat>65?"#ffa58a":"#dcffb5";ctx.fill();
  ctx.shadowBlur=0;ctx.restore();
+ // Oscilloscope spatial : la modulation du halo suit la même précision que la commande Missions.
+ if(s.storyIndex>0&&s.signals<3){
+  const precision=E.signalAlignment(s);
+  ctx.beginPath();ctx.arc(w*.53,h*.26,size*.9,-Math.PI/2,-Math.PI/2+Math.PI*2*precision);
+  ctx.lineWidth=Math.max(2,size*.09);
+  ctx.strokeStyle=precision>=.8?"#d7ff9b":"#5ba5a2";ctx.stroke();
+  ctx.font="bold "+Math.max(10,Math.min(16,w*.019))+"px monospace";
+  ctx.textAlign="center";ctx.fillStyle=precision>=.8?"#ecffc3":"#8bc3bf";
+  ctx.fillText("SCAN "+Math.round(precision*100)+"%",w*.53,h*.26+size*1.35);
+ }
  // Soubassement / convoyeur.
  const floor=ctx.createLinearGradient(0,h*.54,0,h);
  floor.addColorStop(0,"#143341");floor.addColorStop(1,"#07151e");
