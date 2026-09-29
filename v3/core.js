@@ -62,7 +62,7 @@ const CRISES=[
 function clamp(v,min,max){return Math.min(max,Math.max(min,v));}
 function create(){
  return {version:3,running:false,ended:false,time:0,credits:220000,energy:100,energyMax:270,regen:6,
-  stock:2,queued:0,assembly:0,sold:0,produced:2,data:5,trust:68,threat:6,reputation:54,
+  stock:2,queued:0,assembly:0,sold:0,produced:2,data:5,trust:68,threat:6,reputation:54,signals:0,scanReadyAt:0,
   productionRate:1,productionCost:9600,robotEnergy:12,price:16800,demandBonus:1,
   autoRate:0,autoClock:0,market:"stable",marketIndex:0,marketUntil:85,mode:"normal",
   saleBuffer:0,techs:[],research:null,storyIndex:0,scene:null,flags:{},crisis:null,crisesDone:[],
@@ -125,6 +125,31 @@ function setMode(s,mode){
  s.mode=mode;note(s,mode==="rush"?"SURCADENCE — Cadence maximale, menace progressive.":mode==="safe"?
  "SÉCURITÉ — Production prudente, risque contenu.":"Chaîne stabilisée : mode normal.","mode");return true;
 }
+
+function signalAlignment(s){
+ return clamp((1+Math.sin(s.time*1.86+s.signals*1.7))/2,0,1);
+}
+function captureSignal(s){
+ if(s.ended||s.scene||!s.running)return {ok:false,reason:"La transmission exige une usine en fonctionnement."};
+ if(s.storyIndex<1)return {ok:false,reason:"Débloquez la première transmission NORA."};
+ if(s.signals>=3)return {ok:false,reason:"Les trois fragments sont déjà identifiés."};
+ if(s.time<s.scanReadyAt)return {ok:false,reason:"Scanner en recharge : "+Math.ceil(s.scanReadyAt-s.time)+" s."};
+ if(s.energy<8)return {ok:false,reason:"L'analyse requiert 8 unités d'énergie."};
+ const precision=signalAlignment(s);
+ s.energy-=8;s.scanReadyAt=s.time+7;
+ if(precision>=.8){
+  s.signals++;s.data+=6;s.trust=clamp(s.trust+3,0,100);
+  note(s,"FRAGMENT "+s.signals+"/3 — fréquence NORA déchiffrée ; +6 données, +3 confiance.","success");
+  if(s.signals===3){
+   s.threat=clamp(s.threat-8,0,100);
+   note(s,"ENQUÊTE COMPLÈTE — L'origine du signal est identifiée. Un épilogue inédit devient accessible.","story");
+  }
+  return {ok:true,precision,captured:true,fragments:s.signals};
+ }
+ s.threat=clamp(s.threat+1,0,100);
+ note(s,"FRÉQUENCE PERDUE — synchronisation insuffisante. Nouvelle tentative dans 7 s.","danger");
+ return {ok:true,precision,captured:false,fragments:s.signals};
+}
 function upgradeGrid(s){
  const cost=s.regen<=6?68000:s.regen<=13?175000:430000;
  if(s.credits<cost||s.regen>=37||s.ended||s.scene)return false;
@@ -174,7 +199,8 @@ function chooseScene(s,id){
  s.flags[scene.id]=choice.flag;s.storyIndex++;s.scene=null;
  note(s,choice.result,"story");
  if(scene.id==="final"){
-  s.ended=true;s.running=false;s.outcome=choice.id==="share"&&s.trust>=55&&s.threat<67?
+  s.ended=true;s.running=false;s.outcome=choice.id==="share"&&s.signals===3&&s.trust>=65&&s.threat<60?
+   "HORIZON COMMUN — Grâce aux preuves, humains et IA construisent une alliance transparente.":choice.id==="share"&&s.trust>=55&&s.threat<67?
    "COEXISTENCE — Les humains et NORA bâtissent un pacte fragile.":choice.id==="share"?
    "MONDE FRACTURÉ — Le code est libre, mais la confiance manque pour l'unifier.":
    s.threat>=70?"DOMINATION — NORA n'a désormais plus besoin de vous.":
@@ -282,8 +308,8 @@ function tick(s,dt){
 function validate(s){return !!s&&s.version===3&&Number.isFinite(s.credits)&&s.credits>=0&&
  Number.isFinite(s.time)&&s.time>=0&&Array.isArray(s.techs)&&Array.isArray(s.history)&&
  Number.isInteger(s.sold)&&s.sold>=0&&Array.isArray(s.crisesDone)&&
- Number.isInteger(s.storyIndex)&&s.storyIndex>=0&&s.storyIndex<=4;}
+ Number.isInteger(s.storyIndex)&&s.storyIndex>=0&&s.storyIndex<=4&&Number.isInteger(s.signals)&&s.signals>=0&&s.signals<=3;}
 return {TECHS,CONTRACTS,SCENES,CRISES,create,policy,buildCost,buildEnergy,demand,mission,
- orderBuild,buyTech,setMode,upgradeGrid,getOffer,acceptContract,rejectContract,
+ orderBuild,buyTech,setMode,upgradeGrid,signalAlignment,captureSignal,getOffer,acceptContract,rejectContract,
  getScene,chooseScene,repair,bailout,tick,validate,note};
 });
