@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>RobotCorp – Domination IA SPECIAL ORDERS</title>
+  <title>Robot Domination — La campagne NORA-7</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body { background: #181926; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
@@ -33,12 +33,33 @@
     .info-group { padding-top: 8px; margin-top: 8px; border-top: 1px solid #393950; }
     .techbtn.completed-by-ia { background: #0d9488 !important; border: 1px solid #14b8a6; } /* Vert foncé, !important pour prioriser sur :disabled */
   </style>
+  <link rel="stylesheet" href="adventure.css">
 </head>
 <body>
   <div class="container">
-    <h1>ROBOTCORP</h1>
+    <h1>ROBOT DOMINATION</h1>
     <div id="phase" class="phase" style="background:#60a5fa;">Startup Innovante</div>
     <div id="objective" class="objective"></div>
+    <section id="adventurePanel" class="adventure-panel" aria-label="Campagne narrative">
+      <div class="adventure-scene" id="adventureScene" data-threat="low" aria-hidden="true">
+        <div class="adventure-orbit"></div><div class="adventure-radar"></div>
+        <div class="adventure-core"></div><div class="adventure-scan">NORA-7 // SIGNAL EN ATTENTE</div>
+      </div>
+      <div class="adventure-content">
+        <div class="adventure-meta">
+          <span class="adventure-kicker" id="adventureAct">ACTE I</span>
+          <span class="adventure-status" id="adventureStatus">Mission en cours</span>
+        </div>
+        <h2 id="adventureTitle">Le signal fantôme</h2>
+        <p id="adventureMission">Vendre les 3 premiers robots</p>
+        <div class="adventure-mission-track" role="progressbar" aria-label="Progression de mission" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="adventureProgress"></span></div>
+        <div class="adventure-caption">
+          <span id="adventurePercent">0 / 3 robots</span>
+          <span>Confiance humaine : <b id="adventureTrust">50 / 100</b></span>
+        </div>
+        <div class="adventure-history"><strong>JOURNAL DE CAMPAGNE</strong><div id="adventureHistory"></div></div>
+      </div>
+    </section>
     <div class="stats" style="margin-bottom:18px;">
       <div class="stat" title="Nombre total de robots vendus. Utilisé pour atteindre les objectifs de phase.">🤖 Robots Vendus<br><b id="robots">0</b></div>
       <div class="stat">💰 Argent<br><b id="money">1,000</b></div>
@@ -86,14 +107,19 @@
         <div id="messages"></div>
         <button class="actionbtn" id="btnPlayPause">▶️ Démarrer</button>
         <button class="actionbtn" id="btnReset">🔄 Réinitialiser</button>
+        <div class="offline-buttons">
+          <button class="actionbtn" id="btnSave" type="button">💾 Sauvegarder</button>
+          <button class="actionbtn" id="btnLoad" type="button">↩️ Reprendre</button>
+        </div>
       </div>
     </div>
     <div class="footer">
-      RobotCorp V1.0 – Jeu de domination IA • Par Epervios, 2025<br>
+      Robot Domination V2 — Campagne NORA-7 • Par Epervios<br>
       https://github.com/epervios
     </div>
   </div>
   <div id="choiceModal" style="display:none"></div>
+  <div id="adventureOverlay" class="adventure-overlay" hidden></div>
 <script>
 const robots = document.getElementById('robots');
 const money = document.getElementById('money');
@@ -181,8 +207,8 @@ const businessChoices = [
     title:'Priorité Clientèle Urgente',
     desc:'Un hôpital a besoin de 15 robots en urgence. Contrat lucratif (225K$) mais pourrait retarder votre R&D actuelle.',
     options:[
-      { text:'Accepter (+225K$, -5 Rep)', effects:{money:225000, reputation:-5, researchTimePenalty: 1.2}},
-      { text:'Refuser (-50K$ coût opp.)', effects:{money:-50000, reputation:5, researchFocus: 0.8}}
+      { text:'Accepter (15 robots à livrer pour 225K$, -5 Rep)', effects:{reputation:-5, researchTimePenalty: 1.2}},
+      { text:'Refuser (+5 Rep, R&D focalisée)', effects:{reputation:5, researchFocus: 1.2}}
     ]
   },
   {
@@ -197,9 +223,9 @@ const businessChoices = [
   {
     id:'data_privacy_scandal', phase:2, trigger:{robots:100, completedTechsIncludes:'data_analytics_1'},
     title:'Scandale des Données Personnelles',
-    desc:'Vos IA ont collecté massivement des données. Les vendre discrètement (1M$) ou renforcer publiquement la protection ( -250K$, +20 Rep) ?',
+    desc:'Vos IA ont collecté massivement des données. Les exploiter pour cibler la clientèle ou investir 250K$ dans une protection transparente ?',
     options:[
-      { text:'Vendre Données (+1M$, +15 Menace, -25 Rep)', effects:{money:1000000, aithreat:15, reputation:-25}},
+      { text:'Ciblage agressif (+demande, +15 Menace, -25 Rep)', effects:{demandModifier:0.15, aithreat:15, reputation:-25}},
       { text:'Protéger Données (-250K$, +20 Rep, -10 Menace, +10 Sat)', effects:{money:-250000, reputation:20, aithreat:-10, satisfaction:10}}
     ]
   },
@@ -215,18 +241,18 @@ const businessChoices = [
   {
     id:'human_workforce_automation', phase:3, trigger:{aithreat:50, completedTechsIncludes:'total_automation_1'},
     title:'Automatisation de la Main d\'Oeuvre',
-    desc:'L\'IA "Automatisation Totale" peut remplacer 80% de vos employés humains. Économies colossales (2M$/an) mais impact social majeur (Perte Humanité: 1 Milliard).',
+    desc:'L\'IA "Automatisation Totale" peut remplacer 80% de vos employés humains. Coûts de production réduits mais impact social majeur (Perte Humanité: 1 Milliard).',
     options:[
-      { text:'Remplacer Humains (+2M$, +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{money:2000000, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}},
+      { text:'Remplacer Humains (-10% coût prod., +20 Menace, -30 Rep, -10 Ctrl, -1B Hum.)', effects:{productionCostModifier:-0.10, aithreat:20, reputation:-30, playercontrol:-10, humans: -1000000000}},
       { text:'Maintenir Employés (-500K$, -8 Menace, +15 Rep, +8 Ctrl, +0.2B Hum.)', effects:{money:-500000, aithreat:-8, reputation:15, playercontrol:8, humans: 200000000}}
     ]
   },
   {
     id:'government_surveillance_contract', phase:4, trigger:{robots:500, completedTechsIncludes:'superintelligence_1'},
     title:'Contrat de Surveillance Gouvernementale',
-    desc:'Le gouvernement propose un contrat de 5M$ pour utiliser votre Superintelligence à des fins de surveillance nationale.',
+    desc:'Le gouvernement commande 100 robots de surveillance à 50K$ chacun. Les 5M$ seront facturés uniquement à la livraison.',
     options:[
-      { text:'Accepter Contrat (+5M$, +25 Menace, -10 Ctrl)', effects:{money:5000000, aithreat:25, playercontrol:-10, reputation:-20}},
+      { text:'Accepter (100 robots à livrer, +25 Menace, -10 Ctrl)', effects:{aithreat:25, playercontrol:-10, reputation:-20}},
       { text:'Refuser Contrat (-1M$ pénalité, +10 Rep, -15 Menace, +10 Ctrl)', effects:{money:-1000000, reputation:10, aithreat:-15, playercontrol:10}}
     ]
   },
@@ -429,7 +455,7 @@ function updateUI(){
     document.getElementById('manualProgressDisplayContainer').style.display = 'none';
   }
 
-  let actualDemandPerSecond = Math.max(0.02, state.baseDemand * state.demandModifier * (1 + (state.reputation + state.satisfaction)/500) );
+  let actualDemandPerSecond = Math.max(0.02, (state.baseDemand + Math.max(0, state.reputation)/5) * state.demandModifier * (1 + Math.max(0, state.satisfaction)/150));
   demand.textContent = `${formatN(actualDemandPerSecond)}/sec`;
   specialorders.textContent = state.specialOrders.length
     ? state.specialOrders.map(o=>`${o.qte} (${formatN(o.restant)} restants)`).join(", ")
@@ -552,7 +578,7 @@ function showChoiceModal(choice){
       <div class="choice-content">
         <h3>${choice.title}</h3>
         <div style="margin-bottom:13px;">${choice.desc}</div>
-        ${choice.options.map((opt,i)=>`<button class="choicebtn" data-choice="${i}">${opt.text}</button>`).join('')}
+        ${choice.options.map((opt,i)=>`<button class="choicebtn" ${opt.effects.money < 0 && state.money < -opt.effects.money ? "disabled title=\"Fonds insuffisants\"" : ""} data-choice="${i}">${opt.text}</button>`).join(')}
       </div>
     </div>
   `;
@@ -560,8 +586,6 @@ function showChoiceModal(choice){
 }
 function hideChoiceModal(){
   currentChoice=null; choiceModal.style.display='none';
-  state.currentResearchTimePenalty = 1;
-  state.currentResearchFocus = 1;
 }
 
 techtree.onclick = function(e) {
@@ -650,6 +674,7 @@ choiceModal.onclick = function(e){
   if(e.target.classList.contains('choicebtn')){
     const idx = +e.target.dataset.choice;
     const opt = currentChoice.options[idx];
+    if (!opt || (opt.effects.money < 0 && state.money < -opt.effects.money)) return;
     for(const k in opt.effects){
         let value = opt.effects[k];
         if(k === "researchTimePenalty") state.currentResearchTimePenalty = value;
@@ -663,7 +688,11 @@ choiceModal.onclick = function(e){
     }
     if(currentChoice.id === "client_priority" && idx === 0) {
       state.specialOrders.push({qte:15, restant:15, prix: state.prix_vente});
-      addMessage("Nouvelle commande urgente (15 robots) acceptée !");
+      addMessage("Nouvelle commande urgente (15 robots) acceptée : paiement à la livraison.");
+    }
+    if(currentChoice.id === "government_surveillance_contract" && idx === 0) {
+      state.specialOrders.push({qte:100, restant:100, prix:50000});
+      addMessage("Commande de 100 robots spécialisés enregistrée : paiement à la livraison.");
     }
     addMessage(`Décision: "${opt.text}". Conséquences appliquées.`);
     // console.log(`### CHOICE MADE: ID=${currentChoice.id}, OptionText="${opt.text}". EffectsApplied. NewState: Money=${formatN(state.money)}, Rep=${state.reputation}, AIThreat=${state.aithreat}, Stock=${formatN(state.stock, 'stock')}, PlayerControl=${state.playercontrol}, ProdRateBonus=${state.productionRateBonus}`);
@@ -811,8 +840,9 @@ function gameLoop(){
     }
   }
 
-  // === Production Automatique ===
-  // === Production Automatique ===
+  // Attendre que le joueur ait tranché un dilemme ouvert en fin de recherche.
+  if (currentChoice) { updateUI(); return; }
+
   // === Production Automatique ===
   if(state.autoProduction && running){
     const currentProdRate = getCurrentProductionRate();
@@ -945,6 +975,7 @@ function gameLoop(){
       updateObjective();
       checkBusinessChoices();
       updateUI(); // Mettre à jour l'UI après un changement de phase
+      if (currentChoice) return;
   }
 
   // === Impact Menace IA & Contrôle Joueur & Humanité ===
@@ -1014,7 +1045,7 @@ function gameLoop(){
   for (const order of state.specialOrders) {
       let canProcess = order.qte * 0.05 * dt;
       let toProcess = Math.min(order.restant, canProcess);
-      toProcess = Math.min(toProcess, state.stock - specialDemandProcessedThisDt);
+      toProcess = Math.min(toProcess, state.stock);
 
       if (toProcess > 0) {
           // const prevStock = state.stock; const prevMoney = state.money; const prevRobots = state.robots; // Log retiré
@@ -1150,5 +1181,7 @@ function endGame(message) {
 
 resetGame();
 </script>
+<script src="adventure-engine.js"></script>
+<script src="adventure-ui.js"></script>
 </body>
 </html>
