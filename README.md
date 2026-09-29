@@ -2,11 +2,11 @@
 
 Un jeu **hors ligne de stratégie et d'aventure narrative** : à la tête de RobotCorp, vous produisez et vendez des robots, financez des technologies et décidez ce que vous laissez faire à une intelligence artificielle de plus en plus autonome.
 
-> La campagne NORA-7 est actuellement en développement sur la branche \`feature/immersive-adventure-v2\`. Les modifications sont isolées de la branche principale et doivent être validées visuellement avant fusion.
+> La campagne NORA-7 est actuellement en développement sur la branche `feature/immersive-adventure-v2`. Les modifications sont isolées de la branche principale et doivent être validées visuellement avant fusion.
 
 ## Jouer
 
-Ouvrez \`index.html\` dans un navigateur récent, puis cliquez sur **Démarrer**. Aucun compte, framework, serveur distant ou service tiers n'est nécessaire.
+Ouvrez `index.html` dans un navigateur récent, puis cliquez sur **Démarrer**. Aucun compte, framework, serveur distant ou service tiers n'est nécessaire.
 
 La partie démarre avec **300 000 $**, **5 000 unités d'énergie** et des robots qui coûtent initialement **4 800 $ à fabriquer**, pour un prix de vente standard de **15 000 $**. Cliquez sur **Créer Robot** pour constituer un stock : un robot complet exige plusieurs cycles manuels tant que votre usine n'a pas été améliorée. Lancez la simulation pour déclencher les ventes.
 
@@ -33,25 +33,25 @@ La campagne mène ensuite aux fins déjà présentes dans le jeu : singularité,
 - **Centre de commandement** animé en CSS, jauge de mission et animation réactive à la menace IA.
 - **Journal de campagne** retraçant les trois dernières décisions, distinct des actualités économiques.
 - **Sauvegarder / Reprendre** : sauvegarde du moteur économique, des technologies, des recherches en cours, des décisions morales et de l'histoire dans le stockage local du navigateur. Une sauvegarde n'est pas synchronisée entre appareils.
-- **Accessibilité** : navigation au clavier dans les nouveaux dilemmes, indication des choix non finançables, prise en compte de \`prefers-reduced-motion\`, affichage mobile.
+- **Accessibilité** : navigation au clavier dans les nouveaux dilemmes, indication des choix non finançables, prise en compte de `prefers-reduced-motion`, affichage mobile.
 
-Si votre navigateur interdit le stockage depuis une page \`file://\`, vous pouvez lancer un petit serveur **local** depuis le dossier du projet avec \`python -m http.server 8080\`, puis ouvrir \`http://localhost:8080\`. Aucune donnée ne quitte votre ordinateur.
+Si votre navigateur interdit le stockage depuis une page `file://`, vous pouvez lancer un petit serveur **local** depuis le dossier du projet avec `python -m http.server 8080`, puis ouvrir `http://localhost:8080`. Aucune donnée ne quitte votre ordinateur.
 
 ## Architecture
 
-Le noyau historique est conservé dans \`index.html\`. Cette première étape sort la campagne du monolithe sans changer la pile technique :
+Le noyau historique est conservé dans `index.html`. Cette première étape sort la campagne du monolithe sans changer la pile technique :
 
-- \`adventure-engine.js\` — règles déterministes, cinq actes, incidents et progression, testables sans navigateur.
-- \`adventure-ui.js\` — intégration non destructive au jeu existant, modal narrative et sauvegardes.
-- \`adventure.css\` — identité de la salle de contrôle, animations et interface adaptative.
-- \`tests/\` — tests Node sans dépendance externe.
-- \`GAME_DESIGN.md\` — vision, critères d'équilibrage et étapes suivantes.
+- `adventure-engine.js` — règles déterministes, cinq actes, incidents et progression, testables sans navigateur.
+- `adventure-ui.js` — intégration non destructive au jeu existant, modal narrative et sauvegardes.
+- `adventure.css` — identité de la salle de contrôle, animations et interface adaptative.
+- `tests/` — tests Node sans dépendance externe.
+- `GAME_DESIGN.md` — vision, critères d'équilibrage et étapes suivantes.
 
 Pour exécuter les tests depuis le dépôt, avec Node.js 22 ou supérieur :
 
-\`\`\`bash
+```bash
 node --test tests/*.test.cjs
-\`\`\`
+```
 
 Les mêmes tests sont configurés dans GitHub Actions pour les pull requests.
 
