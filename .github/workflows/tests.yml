@@ -1,0 +1,24 @@
+name: Robot Domination — Tests
+
+on:
+  push:
+    branches:
+      - feature/immersive-adventure-v2
+      - prototype/robot-domination-v3
+      - prototype/robot-domination-v4-odyssey
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contrôles du moteur et du parcours de jeu
+        run: node --test tests/*.test.cjs
