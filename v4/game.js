@@ -383,6 +383,8 @@ function openScene(){
  const scene=E.getScene(s);
  if(!scene||sceneVisible===scene.id)return;
  sceneVisible=scene.id;consequenceActive=false;
+ clearTimeout(toastHandle);els.toast.classList.remove("is-visible");
+ els.storyDescription.hidden=false;els.storyStakes.hidden=false;
  const speaker=scene.speaker||"NORA-7";
  const speakerKey=speaker.includes("MAËLLE")?"maelle":
   speaker.includes("MALIK")?"malik":speaker.includes("VEGA")?"vega":"nora";
@@ -419,6 +421,7 @@ function chooseScene(id){
   toast("Vous ne disposez pas des crédits nécessaires.",true);return;
  }
  consequenceActive=true;s.running=false;
+ els.storyDescription.hidden=true;els.storyStakes.hidden=true;
  els.storyButtons.hidden=true;els.storyConsequence.hidden=false;
  setText(els.storyHeading,"UN MONDE VIENT DE CHANGER");
  setText(els.storyDialogue,"« Chaque décision crée un monde. Vous venez d'en choisir un. » — ECHO");
