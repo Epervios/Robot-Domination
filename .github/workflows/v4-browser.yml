@@ -1,0 +1,33 @@
+name: Robot Domination V4 — Browser UX
+on:
+  push:
+    branches:
+      - prototype/robot-domination-v4-odyssey
+  pull_request:
+    branches:
+      - prototype/robot-domination-v3
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer Chromium de validation
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test réel ordinateur, smartphone et campagne
+        run: node tests/v4-browser.mjs
+      - name: Publier les captures de jeu
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-domination-v4-odyssey-captures
+          path: artifacts-v4/*.png
+          if-no-files-found: ignore
