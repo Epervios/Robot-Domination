@@ -304,19 +304,54 @@ function tick(s,dt){
  const events=[];dt=clamp(dt,0,1);
  s.time+=dt;
  s.energy=clamp(s.energy+s.regen*dt,0,s.energyMax);
- s.data+=.2*dt;
+ s.data+=(.2+s.bonusData)*dt;
+ if(s.supply){
+  s.supply.remaining-=dt;
+  if(s.supply.remaining<=0){
+   s.materials+=s.supply.count;s.ops.batches++;
+   note(s,"APPROVISIONNEMENT — "+s.supply.count+" composants reçus.","success");
+   events.push({type:"supply",count:s.supply.count});s.supply=null;
+  }
+ }
+ if(s.time>=s.payrollAt){
+  const wage=9000+s.staff*1200;
+  s.payrollAt+=44;s.ops.payrolls++;
+  if(s.credits>=wage){
+   s.credits-=wage;s.morale=clamp(s.morale+1,0,100);
+   note(s,"PAIE — "+wage.toLocaleString("fr-CH")+" ¤ versés aux équipes.","info");
+  }else{
+   s.credits=0;s.morale=clamp(s.morale-15,0,100);
+   s.trust=clamp(s.trust-8,0,100);s.factions.crew=clamp(s.factions.crew-9,0,100);
+   note(s,"ALERTE SOCIALE — paie impossible, équipe démobilisée.","danger");
+   events.push({type:"payrollFailed"});
+  }
+ }
+ if(s.techs.includes("encryption")&&s.factions.crew>=60)
+  s.threat=clamp(s.threat-.024*dt,0,100);
  if(s.outage>0)s.outage=Math.max(0,s.outage-dt);
  const policyData=policy(s);
- if(s.mode==="rush"&&(s.queued>0||s.autoRate>0)){s.threat=clamp(s.threat+.055*dt,0,100);}
- if(s.mode==="safe"&&s.queued>0){s.threat=clamp(s.threat-.018*dt,0,100);}
+ if(s.mode==="rush"&&(s.queued>0||s.autoRate>0)){
+  s.threat=clamp(s.threat+.055*dt,0,100);s.morale=clamp(s.morale-.021*dt,0,100);
+ }
+ if(s.mode==="safe"&&s.queued>0){
+  s.threat=clamp(s.threat-.018*dt,0,100);s.morale=clamp(s.morale+.014*dt,0,100);
+ }
  if(s.autoRate&&s.outage===0){
   s.autoClock+=dt*s.autoRate;
   if(s.autoClock>=2.5){const made=orderBuild(s,1);s.autoClock=made.ok?0:2.5;}
  }
  if(s.queued>0&&s.outage===0){
-  s.assembly+=dt*(policyData.rate*s.productionRate)/2.9;
+  s.assembly+=dt*(policyData.rate*s.productionRate)/(2.9*(1+Math.max(0,s.wear-55)/100))*
+  (s.morale<40?.74:1);
   while(s.assembly>=1&&s.queued>0){
-   s.assembly--;s.queued--;s.stock++;s.produced++;events.push({type:"built"});
+    s.assembly--;s.queued--;s.stock++;s.produced++;
+   s.wear=clamp(s.wear+.82*s.wearModifier,0,100);
+   events.push({type:"built"});
+   if(s.wear>=97){
+    s.outage=15;s.wear=63;s.morale=clamp(s.morale-7,0,100);
+    note(s,"PANNE MÉCANIQUE — usure excessive : ligne coupée 15 s.","danger");
+    events.push({type:"breakdown"});
+   }
   }
  }
  if(s.research){
@@ -336,7 +371,12 @@ function tick(s,dt){
  while(s.saleBuffer>=1&&s.stock>=1){
   s.stock--;s.sold++;s.saleBuffer--;
   const contract=s.contract&&s.contract.remaining>0?s.contract:null;
-  s.credits+=contract?contract.price:s.price;
+  const region=currentRegion(s);
+  s.credits+=contract?contract.price:Math.round(s.price*region.price);
+  s.regionSales[s.region]++;
+  s.factions.public=clamp(s.factions.public+region.public,0,100);
+  s.threat=clamp(s.threat+region.threat,0,100);
+  if(s.region==="medical")s.trust=clamp(s.trust+.018,0,100);
   if(contract)contract.remaining--;
   s.data+=.7;s.reputation=clamp(s.reputation+.025,0,100);
   events.push({type:"sold",special:!!contract});
@@ -349,7 +389,7 @@ function tick(s,dt){
  if(s.crisis){
   s.crisis.remaining=Math.max(0,s.crisis.remaining-dt);
   if(s.crisis.remaining===0){
-   s.crisesDone.push(s.crisis.id);s.crisis=null;s.outage=18;
+   s.crisesDone.push(s.crisis.id);s.crisis=null;s.outage=s.techs.includes("redundancy")?9:18;
    s.trust=clamp(s.trust-12,0,100);s.threat=clamp(s.threat+11,0,100);
    note(s,"ÉCHEC — L'atelier est coupé pendant 18 s ; menace +11.","danger");
    events.push({type:"crisisFailed"});
